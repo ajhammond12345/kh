@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .prose-gallery {
+    @apply font-serif text-charcoal-700 leading-relaxed;
+  }
+
+  .prose-gallery h2 {
+    @apply font-display text-2xl text-charcoal-900 mt-8 mb-3;
+  }
+
+  .prose-gallery h3 {
+    @apply font-display text-xl text-charcoal-900 mt-6 mb-2;
+  }
+
+  .prose-gallery p {
+    @apply mb-4;
+  }
+
+  .prose-gallery ul {
+    @apply list-disc pl-6 mb-4 space-y-1;
+  }
+
+  .prose-gallery a {
+    @apply text-gallery-gold hover:text-gallery-bronze underline transition-colors;
+  }
+}
