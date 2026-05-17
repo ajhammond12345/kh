@@ -3,14 +3,8 @@ import type { GalleryArtwork } from '~/composables/useArtworks'
 
 const { artworks } = useArtworks()
 
-// Prefer real photographic plates first, then a couple of generated landscapes.
 const list = computed<GalleryArtwork[]>(() => {
-  const published = artworks.filter((w) => w.status === 'published')
-  const reals = published.filter((w) => w.image)
-  const generated = published.filter(
-    (w) => !w.image && ['open-valley', 'river-bend', 'sea', 'venice-canal'].includes(w.layout || ''),
-  )
-  return [...reals, ...generated].slice(0, 5)
+  return artworks.filter((w) => w.status === 'published').slice(0, 5)
 })
 
 const idx = ref(0)

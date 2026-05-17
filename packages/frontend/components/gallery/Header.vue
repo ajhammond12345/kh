@@ -353,7 +353,7 @@ const searchIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" 
                     </div>
                   </div>
                   <div :style="{ fontFamily: 'var(--font-ui)', fontSize: '11px', color: 'var(--ink-3)', letterSpacing: '0.08em' }">
-                    No. {{ w.catalogue }}
+                    {{ w.subject }}
                   </div>
                 </NuxtLink>
               </li>

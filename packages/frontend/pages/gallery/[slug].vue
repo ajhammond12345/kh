@@ -78,17 +78,9 @@ if (work) {
             <span class="kh-meta-label">Location</span>
             <span class="kh-meta-value">{{ work.location }}</span>
           </div>
-          <div v-if="work.inscribed" class="kh-meta-row">
-            <span class="kh-meta-label">Inscribed</span>
-            <span class="kh-meta-value">{{ work.inscribed }}</span>
-          </div>
-          <div v-if="work.catalogue" class="kh-meta-row">
-            <span class="kh-meta-label">Catalogue</span>
-            <span class="kh-meta-value">{{ work.catalogue }}</span>
-          </div>
-          <div v-if="work.provenance" class="kh-meta-row">
-            <span class="kh-meta-label">Provenance</span>
-            <span class="kh-meta-value">{{ work.provenance }}</span>
+          <div v-if="work.signature" class="kh-meta-row">
+            <span class="kh-meta-label">Signature</span>
+            <span class="kh-meta-value">{{ work.signature }}</span>
           </div>
         </div>
 
