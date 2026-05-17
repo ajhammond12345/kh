@@ -8,7 +8,7 @@ const transparent = computed(() => route.path === '/')
 
 const items = [
   { id: 'home', label: 'Home', path: '/' },
-  { id: 'gallery', label: 'Artwork library', path: '/#library' },
+  { id: 'gallery', label: 'Artwork library', path: '/library' },
   { id: 'artist', label: 'Biography', path: '/artist' },
   { id: 'blog', label: 'Blog', path: '/blog' },
   { id: 'support', label: 'Support', path: '/about' },

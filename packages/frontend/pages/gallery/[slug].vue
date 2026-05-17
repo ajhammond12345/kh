@@ -16,7 +16,7 @@ if (work) {
 <template>
   <div :style="{ maxWidth: '960px', margin: '64px auto 0', padding: '0 32px 96px' }">
     <NuxtLink
-      to="/#library"
+      to="/library"
       :style="{
         display: 'inline-flex',
         alignItems: 'center',
@@ -108,7 +108,7 @@ if (work) {
         Artwork Not Found
       </h1>
       <NuxtLink
-        to="/#library"
+        to="/library"
         :style="{ fontFamily: 'var(--font-ui)', fontSize: '14px', fontWeight: 600, color: 'var(--sienna)', textDecoration: 'none' }"
       >
         Return to Library
