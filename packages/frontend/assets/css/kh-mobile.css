@@ -1,0 +1,87 @@
+/* =========================================================================
+   Mobile + tablet overrides for inline-styled gallery components.
+   Inline styles can only be overridden with !important — keyed off
+   data-screen-label wrappers so the blast radius is contained.
+   Breakpoints: ≤ 920px tablet · ≤ 640px phone
+   ========================================================================= */
+
+@media (max-width: 920px) {
+  [data-screen-label="Hero"] { min-height: 100svh !important; height: auto !important; }
+  [data-screen-label="Hero"] h1 { font-size: clamp(40px, 11vw, 64px) !important; line-height: 1.0 !important; }
+  [data-screen-label="Hero"] > div:nth-child(2) {
+    padding-top: 22vh !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+  [data-screen-label="Hero"] > div:last-child > div {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  [data-screen-label="Hero"] + section > div {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 18px !important;
+  }
+
+  section:not([data-screen-label="Hero"]) { padding-left: 20px !important; padding-right: 20px !important; }
+  [data-screen-label="Hero"] ~ section > div[style*="repeat(3, 1fr)"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  [data-screen-label="Footer"] > div:first-of-type {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 32px !important;
+  }
+  [data-screen-label="Footer"] { padding: 56px 20px 32px !important; }
+  [data-screen-label="Footer"] > div:last-of-type {
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: flex-start !important;
+  }
+}
+
+@media (max-width: 640px) {
+  [data-screen-label="Hero"] h1 { font-size: clamp(36px, 12vw, 52px) !important; }
+  [data-screen-label="Hero"] > div:nth-child(2) > p { font-size: 16px !important; }
+  [data-screen-label="Hero"] > div:nth-child(2) > div:last-child {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  [data-screen-label="Hero"] > div:nth-child(2) > div:last-child > a {
+    width: 100% !important;
+    text-align: center !important;
+  }
+  [data-screen-label="Hero"] > div:last-child { padding: 14px 20px !important; }
+
+  section > div[style*="justify-content: space-between"]:not([data-screen-label]) {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 14px !important;
+  }
+
+  [data-screen-label="Hero"] ~ section > div[style*="repeat(3, 1fr)"],
+  [data-screen-label="Hero"] ~ section > div[style*="repeat(2, 1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+  [data-screen-label="Hero"] ~ section a[style*="span 2"] {
+    grid-column: span 1 !important;
+    grid-row: span 1 !important;
+  }
+  [data-screen-label="Hero"] ~ section a img { height: 340px !important; }
+
+  section > div[style*="repeat(3, 1fr)"] { grid-template-columns: 1fr !important; }
+  section[style*="background: var(--paper-2)"] { padding: 56px 20px !important; }
+
+  [data-screen-label="Footer"] > div:first-of-type {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+  section:not([data-screen-label="Hero"]) { margin-top: 56px !important; }
+  h1, h2, h3 { word-break: break-word; overflow-wrap: anywhere; }
+}
+
+@media (max-width: 380px) {
+  [data-screen-label="Hero"] h1 { font-size: 32px !important; }
+}

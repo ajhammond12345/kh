@@ -1,52 +1,5 @@
-<template>
-  <div class="max-w-4xl mx-auto px-4 py-12">
-    <h1 class="font-display text-4xl md:text-5xl text-charcoal-900 mb-8">The Artist in the Media</h1>
-
-    <section class="mb-12">
-      <h2 class="font-display text-2xl text-charcoal-900 mb-4">Biography</h2>
-      <div class="bg-cream-100 rounded-lg p-6 border border-cream-200">
-        <p class="font-serif font-semibold text-charcoal-900">Arthur Henry Knighton-Hammond</p>
-        <p class="font-serif text-charcoal-700 mt-1">Author: Peter Norris, BA (Hons)</p>
-        <p class="font-serif text-charcoal-700">Publisher: Lutterworth Press, Cambridge, 1994</p>
-        <p class="font-serif text-sm text-charcoal-700 mt-2">
-          Sponsored by The Herbert H &amp; Grace A Dow Foundation and Midland Center for the Arts
-        </p>
-      </div>
-    </section>
-
-    <section class="mb-12">
-      <h2 class="font-display text-2xl text-charcoal-900 mb-4">Magazine &amp; Newspaper Articles</h2>
-      <ul class="space-y-3">
-        <li
-          v-for="article in articles"
-          :key="article.title"
-          class="font-serif text-charcoal-700 border-b border-cream-200 pb-3"
-        >
-          <span class="font-medium text-charcoal-900">{{ article.title }}</span>
-          <span v-if="article.date" class="text-sm"> &mdash; {{ article.date }}</span>
-          <p v-if="article.note" class="text-sm mt-1">{{ article.note }}</p>
-        </li>
-      </ul>
-    </section>
-
-    <section>
-      <h2 class="font-display text-2xl text-charcoal-900 mb-4">TV &amp; Radio</h2>
-      <ul class="space-y-3">
-        <li
-          v-for="item in tvRadio"
-          :key="item.title"
-          class="font-serif text-charcoal-700 border-b border-cream-200 pb-3"
-        >
-          <span class="font-medium text-charcoal-900">{{ item.title }}</span>
-          <span v-if="item.date" class="text-sm"> &mdash; {{ item.date }}</span>
-        </li>
-      </ul>
-    </section>
-  </div>
-</template>
-
 <script setup lang="ts">
-useHead({ title: "Artist's Media — The Knighton-Hammond Charitable Trust" })
+useHead({ title: 'The Artist in the Media — Knighton-Hammond Charitable Trust' })
 
 const articles = [
   { title: 'The Studio, Volume 88, No. 380', date: '1924', note: null },
@@ -70,3 +23,86 @@ const tvRadio = [
   { title: 'BBC East Midlands TV News — Feature on Bromley House Library exhibition', date: '2016' },
 ]
 </script>
+
+<template>
+  <div :style="{ maxWidth: '800px', margin: '64px auto 0', padding: '0 32px 96px' }">
+    <div :style="{ display: 'flex', alignItems: 'center', gap: '12px', fontFamily: 'var(--font-ui)', fontSize: '11px', letterSpacing: '0.20em', fontWeight: 600, color: 'var(--ink-3)', marginBottom: '16px', textTransform: 'uppercase' }">
+      <span :style="{ display: 'inline-block', width: '24px', height: '1px', background: 'var(--sienna)' }" />
+      PRESS &amp; MEDIA
+    </div>
+    <h1 :style="{ fontFamily: 'var(--font-display)', fontSize: '48px', fontWeight: 500, lineHeight: 1.08, letterSpacing: '-0.01em', color: 'var(--ink)', margin: '0 0 48px' }">
+      The Artist in the Media
+    </h1>
+
+    <section :style="{ marginBottom: '64px' }">
+      <h2 class="kh-h2">Biography</h2>
+      <div :style="{ background: 'var(--paper-2)', padding: '24px', borderLeft: '2px solid var(--sienna)' }">
+        <div :style="{ fontFamily: 'var(--font-body)', fontWeight: 600, color: 'var(--ink)', fontSize: '17px' }">
+          Arthur Henry Knighton-Hammond
+        </div>
+        <div :style="{ fontFamily: 'var(--font-body)', color: 'var(--ink-2)', fontSize: '15px', marginTop: '4px' }">
+          Author: Peter Norris, BA (Hons)
+        </div>
+        <div :style="{ fontFamily: 'var(--font-body)', color: 'var(--ink-2)', fontSize: '15px' }">
+          Publisher: Lutterworth Press, Cambridge, 1994
+        </div>
+        <div :style="{ fontFamily: 'var(--font-body)', color: 'var(--ink-3)', fontSize: '14px', marginTop: '8px' }">
+          Sponsored by The Herbert H &amp; Grace A Dow Foundation and Midland Center for the Arts
+        </div>
+      </div>
+    </section>
+
+    <section :style="{ marginBottom: '64px' }">
+      <h2 class="kh-h2">Magazine &amp; Newspaper Articles</h2>
+      <div class="kh-list">
+        <div
+          v-for="article in articles"
+          :key="article.title"
+          class="kh-list-item"
+        >
+          <div :style="{ fontFamily: 'var(--font-body)', fontWeight: 500, color: 'var(--ink)', fontSize: '16px' }">
+            {{ article.title }}
+            <span v-if="article.date" :style="{ fontWeight: 400, color: 'var(--ink-3)' }"> &mdash; {{ article.date }}</span>
+          </div>
+          <div v-if="article.note" :style="{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--ink-2)', marginTop: '2px' }">
+            {{ article.note }}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="kh-h2">TV &amp; Radio</h2>
+      <div class="kh-list">
+        <div
+          v-for="item in tvRadio"
+          :key="item.title"
+          class="kh-list-item"
+        >
+          <div :style="{ fontFamily: 'var(--font-body)', fontWeight: 500, color: 'var(--ink)', fontSize: '16px' }">
+            {{ item.title }}
+            <span v-if="item.date" :style="{ fontWeight: 400, color: 'var(--ink-3)' }"> &mdash; {{ item.date }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</template>
+
+<style scoped>
+.kh-h2 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--ink);
+  margin: 0 0 20px;
+  line-height: 1.2;
+}
+.kh-list-item {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.kh-list-item:first-child {
+  border-top: 1px solid var(--hairline);
+}
+</style>

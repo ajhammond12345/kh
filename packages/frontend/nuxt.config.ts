@@ -25,7 +25,11 @@ export default defineNuxtConfig({
     quality: 85,
   },
 
-  css: ['~/assets/css/global.css'],
+  css: [
+    '~/assets/css/kh-tokens.css',
+    '~/assets/css/global.css',
+    '~/assets/css/kh-mobile.css',
+  ],
 
   runtimeConfig: {
     public: {

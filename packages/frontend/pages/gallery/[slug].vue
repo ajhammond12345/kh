@@ -1,123 +1,221 @@
+<script setup lang="ts">
+const route = useRoute()
+const { artworks } = useArtworks()
+
+const slug = route.params.slug as string
+const work = artworks.find((w) => w.id === slug) || null
+const lightboxOpen = ref(false)
+
+if (work) {
+  useHead({ title: `${work.title} — Knighton-Hammond` })
+} else {
+  useHead({ title: 'Artwork Not Found — Knighton-Hammond' })
+}
+</script>
+
 <template>
-  <div class="max-w-4xl mx-auto px-4 py-12">
-    <!-- Back link -->
+  <div :style="{ maxWidth: '960px', margin: '64px auto 0', padding: '0 32px 96px' }">
     <NuxtLink
-      to="/gallery"
-      class="inline-flex items-center gap-1 font-serif text-gallery-gold hover:text-gallery-bronze transition-colors mb-8"
+      to="/#library"
+      :style="{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px',
+        fontFamily: 'var(--font-ui)',
+        fontSize: '13px',
+        fontWeight: 600,
+        color: 'var(--sienna)',
+        textDecoration: 'none',
+        letterSpacing: '0.02em',
+        marginBottom: '40px',
+      }"
     >
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
       </svg>
-      Back to Gallery
+      Back to Library
     </NuxtLink>
 
-    <div v-if="artwork" class="md:flex gap-8">
-      <!-- Image -->
-      <div class="md:w-1/2 mb-6 md:mb-0">
+    <div v-if="work" class="kh-detail">
+      <div class="kh-detail-image">
         <div
-          class="rounded-lg overflow-hidden cursor-pointer shadow-md"
-          :style="{ backgroundColor: artwork.dominantColor || '#EDE0C7' }"
-          @click="lightboxOpen = true"
+          :style="{ background: 'var(--paper-2)', padding: '16px', cursor: work.image ? 'pointer' : 'default' }"
+          @click="work.image && (lightboxOpen = true)"
         >
-          <img
-            v-if="artwork.imagePath"
-            :src="imageUrl(artwork.imagePath, 'large')"
-            :alt="artwork.title"
-            class="w-full h-auto"
-          />
+          <GalleryArtworkImage :work="work" frame="bare" ratio="auto" />
         </div>
-        <p class="font-serif text-xs text-charcoal-700 mt-2 text-center">
+        <div
+          v-if="work.image"
+          :style="{ fontFamily: 'var(--font-ui)', fontSize: '11px', color: 'var(--ink-3)', textAlign: 'center', marginTop: '8px' }"
+        >
           Click image to view full size
-        </p>
+        </div>
       </div>
 
-      <!-- Details -->
-      <div class="md:w-1/2">
-        <h1 class="font-display text-3xl md:text-4xl text-charcoal-900 mb-4">
-          {{ artwork.title }}
+      <div class="kh-detail-info">
+        <h1 :style="{ fontFamily: 'var(--font-display)', fontSize: '36px', fontWeight: 500, lineHeight: 1.15, color: 'var(--ink)', margin: '0 0 24px' }">
+          {{ work.title }}
         </h1>
 
-        <div class="space-y-2 mb-6">
-          <p v-if="artwork.location" class="font-serif text-charcoal-700">
-            <span class="font-semibold text-charcoal-900">Location:</span> {{ artwork.location }}
-          </p>
-          <p v-if="artwork.subject" class="font-serif text-charcoal-700">
-            <span class="font-semibold text-charcoal-900">Subject:</span> {{ artwork.subject }}
-          </p>
-          <p v-if="artwork.medium" class="font-serif text-charcoal-700">
-            <span class="font-semibold text-charcoal-900">Medium:</span> {{ artwork.medium }}
-          </p>
-          <p v-if="artwork.decade" class="font-serif text-charcoal-700">
-            <span class="font-semibold text-charcoal-900">Date:</span> {{ artwork.decade }}
-          </p>
-          <p v-if="artwork.signature" class="font-serif text-charcoal-700">
-            <span class="font-semibold text-charcoal-900">Signature:</span> {{ artwork.signature }}
-          </p>
-          <p v-if="artwork.dimensions" class="font-serif text-charcoal-700">
-            <span class="font-semibold text-charcoal-900">Dimensions:</span> {{ artwork.dimensions }}
-          </p>
+        <div class="kh-meta">
+          <div v-if="work.year" class="kh-meta-row">
+            <span class="kh-meta-label">Date</span>
+            <span class="kh-meta-value">{{ work.year }}</span>
+          </div>
+          <div v-if="work.medium" class="kh-meta-row">
+            <span class="kh-meta-label">Medium</span>
+            <span class="kh-meta-value">{{ work.medium }}</span>
+          </div>
+          <div v-if="work.dim" class="kh-meta-row">
+            <span class="kh-meta-label">Dimensions</span>
+            <span class="kh-meta-value">{{ work.dim }}</span>
+          </div>
+          <div v-if="work.subject" class="kh-meta-row">
+            <span class="kh-meta-label">Subject</span>
+            <span class="kh-meta-value">{{ work.subject }}</span>
+          </div>
+          <div v-if="work.location" class="kh-meta-row">
+            <span class="kh-meta-label">Location</span>
+            <span class="kh-meta-value">{{ work.location }}</span>
+          </div>
+          <div v-if="work.inscribed" class="kh-meta-row">
+            <span class="kh-meta-label">Inscribed</span>
+            <span class="kh-meta-value">{{ work.inscribed }}</span>
+          </div>
+          <div v-if="work.catalogue" class="kh-meta-row">
+            <span class="kh-meta-label">Catalogue</span>
+            <span class="kh-meta-value">{{ work.catalogue }}</span>
+          </div>
+          <div v-if="work.provenance" class="kh-meta-row">
+            <span class="kh-meta-label">Provenance</span>
+            <span class="kh-meta-value">{{ work.provenance }}</span>
+          </div>
         </div>
 
-        <div v-if="artwork.description" class="prose-gallery">
-          <p>{{ artwork.description }}</p>
-        </div>
+        <p
+          v-if="work.blurb"
+          :style="{
+            fontFamily: 'var(--font-body)',
+            fontSize: '16px',
+            lineHeight: 1.65,
+            color: 'var(--ink-2)',
+            marginTop: '28px',
+            maxWidth: '50ch',
+          }"
+        >
+          {{ work.blurb }}
+        </p>
       </div>
     </div>
 
-    <!-- Loading -->
-    <div v-else-if="loading" class="text-center py-16">
-      <p class="font-serif text-charcoal-700">Loading artwork...</p>
-    </div>
-
-    <!-- Not found -->
-    <div v-else class="text-center py-16">
-      <h1 class="font-display text-3xl text-charcoal-900 mb-4">Artwork Not Found</h1>
-      <NuxtLink to="/gallery" class="font-serif text-gallery-gold hover:text-gallery-bronze transition-colors">
-        Return to Gallery
+    <div
+      v-else
+      :style="{ textAlign: 'center', padding: '96px 0' }"
+    >
+      <h1 :style="{ fontFamily: 'var(--font-display)', fontSize: '32px', color: 'var(--ink)', marginBottom: '16px' }">
+        Artwork Not Found
+      </h1>
+      <NuxtLink
+        to="/#library"
+        :style="{ fontFamily: 'var(--font-ui)', fontSize: '14px', fontWeight: 600, color: 'var(--sienna)', textDecoration: 'none' }"
+      >
+        Return to Library
       </NuxtLink>
     </div>
 
-    <!-- Lightbox -->
     <Teleport to="body">
-      <div
-        v-if="lightboxOpen && artwork?.imagePath"
-        class="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-        @click="lightboxOpen = false"
-      >
-        <button
-          class="absolute top-4 right-4 text-white/70 hover:text-white text-3xl"
+      <Transition name="kh-lightbox">
+        <div
+          v-if="lightboxOpen && work?.image"
+          :style="{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            background: 'rgba(0,0,0,0.92)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px',
+            cursor: 'pointer',
+          }"
           @click="lightboxOpen = false"
         >
-          &times;
-        </button>
-        <img
-          :src="imageUrl(artwork.imagePath, 'large')"
-          :alt="artwork.title"
-          class="max-w-full max-h-[90vh] object-contain"
-          @click.stop
-        />
-      </div>
+          <button
+            :style="{
+              position: 'absolute',
+              top: '16px',
+              right: '20px',
+              background: 'transparent',
+              border: 0,
+              color: 'rgba(255,255,255,0.7)',
+              fontSize: '32px',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-ui)',
+            }"
+            @click="lightboxOpen = false"
+          >
+            &times;
+          </button>
+          <img
+            :src="work.image"
+            :alt="work.title"
+            :style="{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }"
+            @click.stop
+          />
+        </div>
+      </Transition>
     </Teleport>
   </div>
 </template>
 
-<script setup lang="ts">
-import type { Artwork } from '~/composables/useGallery'
-
-const route = useRoute()
-const { fetchArtwork, imageUrl } = useGallery()
-
-const artwork = ref<Artwork | null>(null)
-const loading = ref(true)
-const lightboxOpen = ref(false)
-
-onMounted(async () => {
-  const slug = route.params.slug as string
-  artwork.value = await fetchArtwork(slug)
-  loading.value = false
-
-  if (artwork.value) {
-    useHead({ title: `${artwork.value.title} — Knighton-Hammond` })
+<style scoped>
+.kh-detail {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+@media (max-width: 720px) {
+  .kh-detail {
+    grid-template-columns: 1fr;
+    gap: 32px;
   }
-})
-</script>
+}
+.kh-meta {
+  display: flex;
+  flex-direction: column;
+}
+.kh-meta-row {
+  display: flex;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hairline);
+  font-family: var(--font-body);
+  font-size: 15px;
+}
+.kh-meta-row:first-child {
+  border-top: 1px solid var(--hairline);
+}
+.kh-meta-label {
+  flex-shrink: 0;
+  width: 100px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding-top: 2px;
+}
+.kh-meta-value {
+  color: var(--ink-2);
+}
+.kh-lightbox-enter-active,
+.kh-lightbox-leave-active {
+  transition: opacity 0.25s ease;
+}
+.kh-lightbox-enter-from,
+.kh-lightbox-leave-to {
+  opacity: 0;
+}
+</style>

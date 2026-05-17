@@ -1,19 +1,27 @@
-<template>
-  <div class="max-w-4xl mx-auto px-4 py-12">
-    <h1 class="font-display text-4xl md:text-5xl text-charcoal-900 mb-8">The Gallery Project</h1>
+<script setup lang="ts">
+useHead({ title: 'The Gallery Project — Knighton-Hammond Charitable Trust' })
+</script>
 
-    <div class="prose-gallery">
-      <p class="text-lg font-medium">
+<template>
+  <div :style="{ maxWidth: '800px', margin: '64px auto 0', padding: '0 32px 96px' }">
+    <div :style="{ display: 'flex', alignItems: 'center', gap: '12px', fontFamily: 'var(--font-ui)', fontSize: '11px', letterSpacing: '0.20em', fontWeight: 600, color: 'var(--ink-3)', marginBottom: '16px', textTransform: 'uppercase' }">
+      <span :style="{ display: 'inline-block', width: '24px', height: '1px', background: 'var(--sienna)' }" />
+      OUR VISION
+    </div>
+    <h1 :style="{ fontFamily: 'var(--font-display)', fontSize: '48px', fontWeight: 500, lineHeight: 1.08, letterSpacing: '-0.01em', color: 'var(--ink)', margin: '0 0 48px' }">
+      The Gallery Project
+    </h1>
+
+    <div class="kh-prose">
+      <p class="kh-lede">
         The Trust is actively seeking a partner (or partners) to take the gallery project
         forward for the people of Nottingham.
       </p>
-
       <p>
         The creation of a Knighton-Hammond Gallery would present a unique opportunity to pay
         homage to the artist with a permanent collection of his works on display and to provide
         further interest in connoisseurship relating to art history within a learned environment.
       </p>
-
       <p>
         The Trust's desire is for Knighton-Hammond's work to be on public display in a
         high-quality art gallery. The collection in the custodianship of the Trust contains
@@ -67,6 +75,26 @@
   </div>
 </template>
 
-<script setup lang="ts">
-useHead({ title: 'The Gallery Project — The Knighton-Hammond Charitable Trust' })
-</script>
+<style scoped>
+.kh-prose h2 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--ink);
+  margin: 48px 0 16px;
+  line-height: 1.2;
+}
+.kh-prose p {
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  margin: 0 0 16px;
+  max-width: 65ch;
+}
+.kh-lede {
+  font-size: 19px !important;
+  font-weight: 500;
+  color: var(--ink) !important;
+}
+</style>

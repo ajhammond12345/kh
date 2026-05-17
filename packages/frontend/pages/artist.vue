@@ -1,22 +1,21 @@
+<script setup lang="ts">
+useHead({ title: 'The Artist — Arthur Henry Knighton-Hammond' })
+</script>
+
 <template>
-  <div class="max-w-4xl mx-auto px-4 py-12">
-    <h1 class="font-display text-4xl md:text-5xl text-charcoal-900 mb-2">The Artist</h1>
-    <p class="font-serif text-xl text-charcoal-700 mb-8">
-      Arthur Henry Knighton-Hammond (1875&ndash;1970)
+  <div :style="{ maxWidth: '800px', margin: '64px auto 0', padding: '0 32px 96px' }">
+    <div :style="{ display: 'flex', alignItems: 'center', gap: '12px', fontFamily: 'var(--font-ui)', fontSize: '11px', letterSpacing: '0.20em', fontWeight: 600, color: 'var(--ink-3)', marginBottom: '16px', textTransform: 'uppercase' }">
+      <span :style="{ display: 'inline-block', width: '24px', height: '1px', background: 'var(--sienna)' }" />
+      BIOGRAPHY
+    </div>
+    <h1 :style="{ fontFamily: 'var(--font-display)', fontSize: '48px', fontWeight: 500, lineHeight: 1.08, letterSpacing: '-0.01em', color: 'var(--ink)', margin: '0 0 8px' }">
+      Arthur Henry Knighton-Hammond
+    </h1>
+    <p :style="{ fontFamily: 'var(--font-body)', fontSize: '19px', color: 'var(--ink-2)', margin: '0 0 48px' }">
+      1875&ndash;1970
     </p>
 
-    <div class="md:float-right md:ml-8 mb-6 md:w-72">
-      <div class="bg-cream-100 rounded-lg overflow-hidden shadow-sm">
-        <div class="aspect-[3/4] bg-cream-200 flex items-center justify-center">
-          <span class="font-serif text-cream-300 text-sm">Self-Portrait</span>
-        </div>
-        <p class="p-3 font-serif text-sm text-charcoal-700 text-center italic">
-          Self-portrait of the artist
-        </p>
-      </div>
-    </div>
-
-    <div class="prose-gallery">
+    <div class="kh-prose">
       <h2>Early Life</h2>
       <p>
         Arthur Henry Hammond was born in Arnold, Nottinghamshire on 18 September 1875.
@@ -93,6 +92,30 @@
   </div>
 </template>
 
-<script setup lang="ts">
-useHead({ title: 'The Artist — Arthur Henry Knighton-Hammond' })
-</script>
+<style scoped>
+.kh-prose h2 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--ink);
+  margin: 48px 0 16px;
+  line-height: 1.2;
+}
+.kh-prose p {
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  margin: 0 0 16px;
+  max-width: 65ch;
+}
+.kh-prose ul {
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  padding-left: 24px;
+  margin: 0;
+}
+.kh-prose li { margin-bottom: 6px; }
+</style>

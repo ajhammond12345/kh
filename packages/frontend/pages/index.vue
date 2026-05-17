@@ -1,88 +1,453 @@
+<script setup lang="ts">
+import type { GalleryArtwork } from '~/composables/useArtworks'
+
+useHead({
+  title: 'Knighton Hammond Charitable Trust — The artwork library',
+  meta: [
+    {
+      name: 'description',
+      content:
+        'A public catalogue of every Knighton-Hammond painting the Trust has been able to find — searchable, with provenance, captions, and the stories behind them.',
+    },
+  ],
+})
+
+const { artworks, journal } = useArtworks()
+const all = computed<GalleryArtwork[]>(() => artworks.filter((w) => w.status === 'published'))
+const featured = computed<GalleryArtwork[]>(() => all.value.slice(0, 6))
+
+const libraryFilter = ref('')
+const libraryFiltered = computed<GalleryArtwork[]>(() => {
+  const needle = libraryFilter.value.trim().toLowerCase()
+  if (!needle) return all.value
+  return all.value.filter(
+    (w) =>
+      w.title.toLowerCase().includes(needle) ||
+      (w.subject || '').toLowerCase().includes(needle) ||
+      (w.location || '').toLowerCase().includes(needle) ||
+      (w.year || '').toLowerCase().includes(needle) ||
+      (w.medium || '').toLowerCase().includes(needle) ||
+      (w.tags || []).some((t) => t.toLowerCase().includes(needle)),
+  )
+})
+
+const sectionStyle = {
+  maxWidth: '1320px',
+  margin: '96px auto 0',
+  padding: '0 32px',
+}
+const headStyle = {
+  display: 'flex',
+  alignItems: 'flex-end',
+  justifyContent: 'space-between',
+  marginBottom: '40px',
+  gap: '24px',
+}
+const eyebrowStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px',
+  fontFamily: 'var(--font-ui)',
+  fontSize: '11px',
+  letterSpacing: '0.20em',
+  fontWeight: 600,
+  color: 'var(--ink-3)',
+  marginBottom: '16px',
+  textTransform: 'uppercase' as const,
+}
+const ruleStyle = {
+  display: 'inline-block',
+  width: '24px',
+  height: '1px',
+  background: 'var(--sienna)',
+}
+const h3Style = {
+  fontFamily: 'var(--font-display)',
+  fontSize: '44px',
+  fontWeight: 500,
+  lineHeight: 1.05,
+  margin: 0,
+  letterSpacing: '-0.01em',
+  color: 'var(--ink)',
+}
+const viewAllStyle = {
+  background: 'transparent',
+  border: 0,
+  padding: '8px 0',
+  fontFamily: 'var(--font-ui)',
+  fontSize: '14px',
+  fontWeight: 600,
+  color: 'var(--sienna)',
+  cursor: 'pointer',
+  letterSpacing: '0.02em',
+  textDecoration: 'none',
+}
+</script>
+
 <template>
   <div>
-    <!-- Hero Banner -->
-    <section class="relative bg-charcoal-900 text-white overflow-hidden">
-      <div class="absolute inset-0 bg-gradient-to-b from-charcoal-900/80 to-charcoal-900/95 z-10" />
-      <div class="relative z-20 text-center py-24 md:py-36 px-4">
-        <h2 class="font-display text-4xl md:text-6xl lg:text-7xl mb-4">
-          Arthur Henry Knighton-Hammond
-        </h2>
-        <p class="font-serif text-xl md:text-2xl text-cream-200 max-w-2xl mx-auto">
-          1875 &ndash; 1970
-        </p>
-        <p class="font-serif text-lg text-cream-300 mt-4 max-w-3xl mx-auto leading-relaxed">
-          A remarkably talented artist whose work spans landscapes, streetscapes, portraits,
-          and still life across oils, watercolours, pastels, and etchings.
-        </p>
-        <div class="mt-8 flex gap-4 justify-center">
-          <NuxtLink
-            to="/gallery"
-            class="px-6 py-3 bg-gallery-gold text-white font-serif rounded hover:bg-gallery-bronze transition-colors"
+    <GalleryHero />
+
+    <!-- Stat strip -->
+    <section :style="{ background: 'var(--ink)', color: '#FAF6EC', padding: '32px' }">
+      <div
+        :style="{
+          maxWidth: '1320px',
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: '24px',
+        }"
+      >
+        <div
+          v-for="(s, i) in [
+            { n: all.length, k: 'works catalogued' },
+            { n: '48', k: 'years of practice' },
+            { n: '9', k: 'countries painted' },
+            { n: '3', k: 'major collections' },
+          ]"
+          :key="i"
+          :style="{
+            display: 'flex',
+            alignItems: 'baseline',
+            gap: '14px',
+            paddingLeft: '24px',
+            borderLeft: '1px solid rgb(250 246 236 / 0.18)',
+          }"
+        >
+          <div :style="{ fontFamily: 'var(--font-display)', fontSize: '44px', color: '#F1E0CC', fontWeight: 500 }">
+            {{ s.n }}
+          </div>
+          <div
+            :style="{
+              fontFamily: 'var(--font-ui)',
+              fontSize: '12px',
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+              color: 'rgb(250 246 236 / 0.7)',
+              fontWeight: 600,
+            }"
           >
-            View Gallery
-          </NuxtLink>
-          <NuxtLink
-            to="/artist"
-            class="px-6 py-3 border border-cream-300 text-cream-200 font-serif rounded hover:bg-cream-300/10 transition-colors"
-          >
-            About the Artist
-          </NuxtLink>
+            {{ s.k }}
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Featured Works -->
-    <section class="max-w-gallery mx-auto px-4 py-16">
-      <h2 class="font-display text-3xl md:text-4xl text-charcoal-900 text-center mb-2">
-        Featured Works
-      </h2>
-      <p class="font-serif text-charcoal-700 text-center mb-10">
-        A selection from the Trust's collection of over 500 catalogued artworks
-      </p>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div
-          v-for="i in 6"
-          :key="i"
-          class="bg-cream-100 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-        >
-          <div class="aspect-[4/3] bg-cream-200 flex items-center justify-center">
-            <span class="font-serif text-cream-300 text-sm">Artwork</span>
-          </div>
-          <div class="p-4">
-            <h3 class="font-serif font-medium text-charcoal-900">Artwork Title</h3>
-            <p class="font-serif text-sm text-charcoal-700 mt-1">Medium &middot; Date</p>
-          </div>
+    <!-- Featured -->
+    <section :style="sectionStyle">
+      <div :style="headStyle">
+        <div>
+          <div :style="eyebrowStyle"><span :style="ruleStyle" />FROM THE LIBRARY</div>
+          <h3 :style="h3Style">Recently catalogued</h3>
         </div>
+        <a href="#library" :style="viewAllStyle">
+          Browse all {{ all.length }} works →
+        </a>
       </div>
-      <div class="text-center mt-10">
+      <div
+        :style="{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridAutoRows: 'minmax(280px, auto)',
+          gap: '28px',
+        }"
+      >
         <NuxtLink
-          to="/gallery"
-          class="inline-block px-8 py-3 border-2 border-gallery-gold text-gallery-gold font-serif rounded hover:bg-gallery-gold hover:text-white transition-colors"
+          v-for="(w, i) in featured"
+          :key="w.id"
+          :to="`/gallery/${w.id}`"
+          class="kh-plate"
+          :style="{
+            background: 'transparent',
+            border: 0,
+            padding: 0,
+            textAlign: 'left',
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            textDecoration: 'none',
+            color: 'inherit',
+            gridColumn: i === 0 ? 'span 2' : 'span 1',
+            gridRow: i === 0 ? 'span 2' : 'span 1',
+          }"
         >
-          Browse Full Gallery
+          <div :style="{ background: 'var(--paper-2)', padding: i === 0 ? '18px' : '12px' }">
+            <GalleryArtworkImage
+              :work="w"
+              frame="bare"
+              ratio="auto"
+            />
+          </div>
+          <div :style="{ padding: '12px 4px' }">
+            <div
+              :style="{
+                fontFamily: 'var(--font-display)',
+                fontSize: i === 0 ? '24px' : '17px',
+                color: 'var(--ink)',
+              }"
+            >
+              <em>{{ w.title }}</em>
+            </div>
+            <div
+              :style="{
+                fontFamily: 'var(--font-ui)',
+                fontSize: '12px',
+                color: 'var(--ink-2)',
+                marginTop: '4px',
+              }"
+            >
+              {{ w.year }} · {{ w.medium }}
+            </div>
+          </div>
         </NuxtLink>
       </div>
     </section>
 
-    <!-- Trust Mission -->
-    <section class="bg-cream-100 py-16">
-      <div class="max-w-3xl mx-auto px-4 text-center">
-        <h2 class="font-display text-3xl md:text-4xl text-charcoal-900 mb-6">
-          Our Mission
-        </h2>
-        <p class="font-serif text-lg text-charcoal-700 leading-relaxed">
-          The Knighton-Hammond Charitable Trust was set up in 2025 to promote the artist
-          Arthur Henry Knighton-Hammond for the people of Nottingham and the wider community.
-          Our primary aim is to make the work of Knighton-Hammond available to the public
-          in a gallery dedicated to his work.
-        </p>
-        <NuxtLink
-          to="/about"
-          class="inline-block mt-6 font-serif text-gallery-gold hover:text-gallery-bronze transition-colors"
+    <!-- About + quote -->
+    <section
+      :style="{
+        background: 'var(--paper-2)',
+        marginTop: '96px',
+        padding: '96px 32px',
+        maxWidth: 'none',
+      }"
+    >
+      <div
+        :style="{
+          maxWidth: '1240px',
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '96px',
+          alignItems: 'center',
+        }"
+      >
+        <div>
+          <div :style="eyebrowStyle"><span :style="ruleStyle" />OUR PURPOSE</div>
+          <h3 :style="{ ...h3Style, fontSize: '52px' }">
+            Conserving<br /><em>a quiet legacy.</em>
+          </h3>
+          <p
+            :style="{
+              fontFamily: 'var(--font-body)',
+              fontSize: '18px',
+              lineHeight: 1.65,
+              color: 'var(--ink-2)',
+              margin: '0 0 28px',
+              maxWidth: '52ch',
+            }"
+          >
+            Knighton-Hammond painted for nearly eighty years. His prolific
+            output — landscapes, portraits, the great industrial scenes of his
+            Michigan years — sits scattered across private collections and
+            provincial galleries. The Trust's work is to find these paintings,
+            catalogue them, and make their stories accessible to anyone who
+            cares to look.
+          </p>
+          <NuxtLink
+            to="/artist"
+            :style="{
+              fontFamily: 'var(--font-ui)',
+              fontSize: '14px',
+              fontWeight: 600,
+              color: 'var(--ink)',
+              background: 'transparent',
+              border: '1px solid var(--ink)',
+              borderRadius: '2px',
+              padding: '13px 24px',
+              cursor: 'pointer',
+              letterSpacing: '0.02em',
+              textDecoration: 'none',
+              display: 'inline-block',
+            }"
+          >
+            Read about the artist
+          </NuxtLink>
+        </div>
+        <blockquote
+          :style="{
+            fontFamily: 'var(--font-display)',
+            fontStyle: 'italic',
+            fontSize: '40px',
+            lineHeight: 1.22,
+            color: 'var(--ink)',
+            margin: 0,
+            paddingLeft: '32px',
+            borderLeft: '2px solid var(--sienna)',
+            maxWidth: '20ch',
+          }"
         >
-          Learn more about the Trust &rarr;
+          "The greatest English painter in watercolour of our time."
+          <cite
+            :style="{
+              display: 'block',
+              marginTop: '18px',
+              fontFamily: 'var(--font-ui)',
+              fontSize: '12px',
+              fontStyle: 'normal',
+              color: 'var(--ink-3)',
+              letterSpacing: '0.06em',
+            }"
+          >
+            — Augustus John, c. 1930
+          </cite>
+        </blockquote>
+      </div>
+    </section>
+
+    <!-- Full library -->
+    <section id="library" :style="sectionStyle">
+      <div :style="headStyle">
+        <div>
+          <div :style="eyebrowStyle"><span :style="ruleStyle" />THE COMPLETE CATALOGUE</div>
+          <h3 :style="h3Style">All {{ all.length }} works</h3>
+        </div>
+      </div>
+      <div :style="{ marginBottom: '32px' }">
+        <input
+          v-model="libraryFilter"
+          type="text"
+          placeholder="Filter by title, subject, location, year…"
+          class="kh-filter-input"
+        />
+      </div>
+      <div
+        :style="{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+          gap: '24px',
+        }"
+      >
+        <NuxtLink
+          v-for="w in libraryFiltered"
+          :key="w.id"
+          :to="`/gallery/${w.id}`"
+          class="kh-plate"
+          :style="{
+            background: 'transparent',
+            border: 0,
+            padding: 0,
+            textAlign: 'left',
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            textDecoration: 'none',
+            color: 'inherit',
+          }"
+        >
+          <div :style="{ background: 'var(--paper-2)', padding: '10px' }">
+            <GalleryArtworkImage :work="w" frame="bare" ratio="4 / 5" />
+          </div>
+          <div :style="{ padding: '10px 4px' }">
+            <div :style="{ fontFamily: 'var(--font-display)', fontSize: '16px', color: 'var(--ink)' }">
+              <em>{{ w.title }}</em>
+            </div>
+            <div :style="{ fontFamily: 'var(--font-ui)', fontSize: '11px', color: 'var(--ink-2)', marginTop: '4px' }">
+              {{ w.year }} · {{ w.medium }}
+            </div>
+          </div>
+        </NuxtLink>
+      </div>
+      <div
+        v-if="libraryFilter && libraryFiltered.length === 0"
+        :style="{ fontFamily: 'var(--font-body)', fontSize: '16px', color: 'var(--ink-2)', padding: '48px 0', textAlign: 'center' }"
+      >
+        No artworks match "{{ libraryFilter }}".
+      </div>
+    </section>
+
+    <!-- Journal -->
+    <section :style="sectionStyle">
+      <div :style="headStyle">
+        <div>
+          <div :style="eyebrowStyle"><span :style="ruleStyle" />THE TRUST JOURNAL</div>
+          <h3 :style="h3Style">From the catalogue room</h3>
+        </div>
+        <NuxtLink to="/blog" :style="viewAllStyle">All journal entries →</NuxtLink>
+      </div>
+      <div :style="{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px' }">
+        <NuxtLink
+          v-for="j in journal.slice(0, 3)"
+          :key="j.id"
+          to="/blog"
+          :style="{
+            background: 'transparent',
+            border: 0,
+            padding: '28px 0 0',
+            textAlign: 'left',
+            cursor: 'pointer',
+            borderTop: '1px solid var(--ink)',
+            textDecoration: 'none',
+            color: 'inherit',
+            display: 'block',
+          }"
+        >
+          <div
+            :style="{
+              fontFamily: 'var(--font-ui)',
+              fontSize: '11px',
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-3)',
+              fontWeight: 600,
+              marginBottom: '16px',
+            }"
+          >
+            {{ j.date }}
+          </div>
+          <div
+            :style="{
+              fontFamily: 'var(--font-display)',
+              fontSize: '26px',
+              fontWeight: 500,
+              lineHeight: 1.2,
+              color: 'var(--ink)',
+              marginBottom: '12px',
+            }"
+          >
+            {{ j.title }}
+          </div>
+          <div
+            :style="{
+              fontFamily: 'var(--font-body)',
+              fontSize: '15.5px',
+              lineHeight: 1.55,
+              color: 'var(--ink-2)',
+              marginBottom: '16px',
+            }"
+          >
+            {{ j.dek }}
+          </div>
+          <div
+            :style="{
+              fontFamily: 'var(--font-ui)',
+              fontSize: '11.5px',
+              color: 'var(--ink-3)',
+              letterSpacing: '0.04em',
+            }"
+          >
+            By {{ j.author }}
+          </div>
         </NuxtLink>
       </div>
     </section>
   </div>
 </template>
+
+<style scoped>
+.kh-filter-input {
+  width: 100%;
+  max-width: 480px;
+  padding: 10px 16px 10px 40px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--paper-2);
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7180' stroke-width='1.7' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.3-4.3'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 12px center;
+}
+</style>

@@ -1,35 +1,5 @@
-<template>
-  <div class="max-w-4xl mx-auto px-4 py-12">
-    <h1 class="font-display text-4xl md:text-5xl text-charcoal-900 mb-2">The Trustees</h1>
-    <p class="font-serif text-lg text-charcoal-700 mb-10">
-      The current Board of Trustees are all unpaid volunteers.
-    </p>
-
-    <div class="space-y-10">
-      <div v-for="trustee in trustees" :key="trustee.name" class="flex gap-6 items-start">
-        <div class="w-24 h-24 rounded-full bg-cream-200 flex-shrink-0 flex items-center justify-center overflow-hidden">
-          <span class="font-display text-2xl text-cream-300">{{ trustee.initials }}</span>
-        </div>
-        <div>
-          <h2 class="font-serif text-xl font-semibold text-charcoal-900">
-            {{ trustee.name }}
-          </h2>
-          <p class="font-serif text-sm text-gallery-gold mb-2">{{ trustee.role }}</p>
-          <p class="font-serif text-charcoal-700 leading-relaxed">{{ trustee.bio }}</p>
-          <a
-            :href="`mailto:${trustee.email}`"
-            class="inline-block mt-2 font-serif text-sm text-gallery-gold hover:text-gallery-bronze transition-colors"
-          >
-            {{ trustee.email }}
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-useHead({ title: 'The Trustees — The Knighton-Hammond Charitable Trust' })
+useHead({ title: 'The Trustees — Knighton-Hammond Charitable Trust' })
 
 const trustees = [
   {
@@ -62,3 +32,63 @@ const trustees = [
   },
 ]
 </script>
+
+<template>
+  <div :style="{ maxWidth: '800px', margin: '64px auto 0', padding: '0 32px 96px' }">
+    <div :style="{ display: 'flex', alignItems: 'center', gap: '12px', fontFamily: 'var(--font-ui)', fontSize: '11px', letterSpacing: '0.20em', fontWeight: 600, color: 'var(--ink-3)', marginBottom: '16px', textTransform: 'uppercase' }">
+      <span :style="{ display: 'inline-block', width: '24px', height: '1px', background: 'var(--sienna)' }" />
+      GOVERNANCE
+    </div>
+    <h1 :style="{ fontFamily: 'var(--font-display)', fontSize: '48px', fontWeight: 500, lineHeight: 1.08, letterSpacing: '-0.01em', color: 'var(--ink)', margin: '0 0 8px' }">
+      The Trustees
+    </h1>
+    <p :style="{ fontFamily: 'var(--font-body)', fontSize: '19px', color: 'var(--ink-2)', margin: '0 0 48px' }">
+      The current Board of Trustees are all unpaid volunteers.
+    </p>
+
+    <div :style="{ display: 'flex', flexDirection: 'column', gap: '0' }">
+      <div
+        v-for="trustee in trustees"
+        :key="trustee.name"
+        :style="{ display: 'flex', gap: '24px', alignItems: 'flex-start', padding: '32px 0', borderTop: '1px solid var(--hairline)' }"
+      >
+        <div class="kh-avatar">
+          {{ trustee.initials }}
+        </div>
+        <div :style="{ flex: 1 }">
+          <div :style="{ fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: 500, color: 'var(--ink)' }">
+            {{ trustee.name }}
+          </div>
+          <div :style="{ fontFamily: 'var(--font-ui)', fontSize: '12px', letterSpacing: '0.08em', color: 'var(--sienna)', fontWeight: 600, marginTop: '2px', marginBottom: '12px' }">
+            {{ trustee.role }}
+          </div>
+          <p :style="{ fontFamily: 'var(--font-body)', fontSize: '16px', lineHeight: 1.65, color: 'var(--ink-2)', margin: '0 0 8px', maxWidth: '60ch' }">
+            {{ trustee.bio }}
+          </p>
+          <a
+            :href="`mailto:${trustee.email}`"
+            :style="{ fontFamily: 'var(--font-ui)', fontSize: '13px', color: 'var(--sienna)', textDecoration: 'underline', textUnderlineOffset: '2px' }"
+          >
+            {{ trustee.email }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.kh-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--paper-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--ink-3);
+}
+</style>
