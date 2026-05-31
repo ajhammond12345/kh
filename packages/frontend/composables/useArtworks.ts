@@ -52,9 +52,11 @@ const ARTWORKS: GalleryArtwork[] = (artworksData as RawArtwork[]).map((raw, i) =
 }))
 
 const JOURNAL: JournalEntry[] = [
-  { id: 'j-001', date: '03 December 2025', title: 'The Knighton-Hammond Gallery Project', dek: 'The Trust is actively seeking a partner to take the gallery project forward for the people of Nottingham.', author: 'Michael Hammond, Chair' },
-  { id: 'j-002', date: '28 October 2025', title: 'One hundred and one years ago today', dek: 'Reflecting on the centenary of the artist\'s journey to America and the Dow Chemical commission that shaped his industrial period.', author: 'Peter Norris, Secretary' },
+  { id: 'j-001', date: '03 December 2025', title: 'The Knighton-Hammond Gallery Project', dek: 'The Trust is seeking a partner organisation to establish a permanent gallery for the display of works by the Nottingham artist, Arthur Henry Knighton-Hammond.', author: 'Michael Hammond, Chair' },
+  { id: 'j-002', date: '28 October 2025', title: 'One hundred and one years ago today', dek: 'On this date in 1924, Knighton-Hammond sailed from Liverpool to New York to begin his commission for the Dow Chemical Company in Midland, Michigan.', author: 'Peter Norris, Secretary' },
   { id: 'j-003', date: '04 October 2025', title: 'Knighton Hammond Work in Public Collections', dek: 'A survey of Knighton-Hammond works held in public galleries and museum collections across the UK and beyond.', author: 'Peter Norris, Secretary' },
+  { id: 'j-004', date: '30 September 2025', title: 'Knighton-Hammond Exhibition at NTU Brackenhurst Campus', dek: 'An exhibition of works by Arthur Henry Knighton-Hammond at Nottingham Trent University\'s Brackenhurst Campus.', author: 'Michael Hammond, Chair' },
+  { id: 'j-005', date: '22 September 2025', title: 'The Opening Evening at NTU Brackenhurst Campus', dek: 'The opening evening for the exhibition of works by Knighton-Hammond at Nottingham Trent University.', author: 'Peter Norris, Secretary' },
 ]
 
 export const useArtworks = () => ({

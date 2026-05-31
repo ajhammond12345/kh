@@ -52,10 +52,11 @@ const linkStyle = {
             <NuxtLink to="/artist" :style="linkStyle">Biography</NuxtLink>
           </li>
           <li :style="{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--ink)', padding: '5px 0' }">
-            <NuxtLink to="/gallery" :style="linkStyle">Catalogue raisonné</NuxtLink>
+            <NuxtLink to="/library" :style="linkStyle">Catalogue raisonné</NuxtLink>
           </li>
-          <li :style="{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--ink)', padding: '5px 0' }">Exhibitions</li>
-          <li :style="{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--ink)', padding: '5px 0' }">Bibliography</li>
+          <li :style="{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--ink)', padding: '5px 0' }">
+            <NuxtLink to="/media" :style="linkStyle">Media &amp; bibliography</NuxtLink>
+          </li>
         </ul>
       </div>
 
@@ -70,8 +71,9 @@ const linkStyle = {
           <li :style="{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--ink)', padding: '5px 0' }">
             <NuxtLink to="/trustees" :style="linkStyle">Trustees</NuxtLink>
           </li>
-          <li :style="{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--ink)', padding: '5px 0' }">Annual report</li>
-          <li :style="{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--ink)', padding: '5px 0' }">Contact</li>
+          <li :style="{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--ink)', padding: '5px 0' }">
+            <NuxtLink to="/gallery-project" :style="linkStyle">Gallery project</NuxtLink>
+          </li>
         </ul>
       </div>
 
@@ -81,12 +83,14 @@ const linkStyle = {
         </div>
         <ul :style="{ listStyle: 'none', margin: 0, padding: 0 }">
           <li :style="{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--ink)', padding: '5px 0' }">
-            <NuxtLink to="/gallery" :style="linkStyle">Browse the library</NuxtLink>
+            <NuxtLink to="/library" :style="linkStyle">Browse the library</NuxtLink>
           </li>
           <li :style="{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--ink)', padding: '5px 0' }">
             <NuxtLink to="/blog" :style="linkStyle">The Trust journal</NuxtLink>
           </li>
-          <li :style="{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--ink)', padding: '5px 0' }">Report a painting</li>
+          <li :style="{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--ink)', padding: '5px 0' }">
+            <NuxtLink to="/social" :style="linkStyle">Social media</NuxtLink>
+          </li>
           <li :style="{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--ink)', padding: '5px 0' }">
             <NuxtLink to="/admin" :style="linkStyle">Trustee login</NuxtLink>
           </li>
@@ -111,9 +115,7 @@ const linkStyle = {
     >
       <span>© {{ new Date().getFullYear() }} Knighton Hammond Charitable Trust</span>
       <span :style="{ display: 'flex', gap: '8px' }">
-        <NuxtLink to="/privacy" :style="linkStyle">Privacy</NuxtLink><span>·</span>
-        <span>Cookies</span><span>·</span>
-        <span>Site by the Trust</span>
+        <NuxtLink to="/privacy" :style="linkStyle">Privacy</NuxtLink>
       </span>
     </div>
   </footer>

@@ -225,11 +225,11 @@ const viewAllStyle = {
             }"
           >
             Knighton-Hammond painted for nearly eighty years. His prolific
-            output — landscapes, portraits, the great industrial scenes of his
-            Michigan years — sits scattered across private collections and
-            provincial galleries. The Trust's work is to find these paintings,
-            catalogue them, and make their stories accessible to anyone who
-            cares to look.
+            output — landscapes, portraits, industrial commissions and
+            continental watercolours — sits scattered across private collections
+            and provincial galleries. The Trust's work is to find these
+            paintings, catalogue them, and make their stories accessible to
+            anyone who cares to look.
           </p>
           <NuxtLink
             to="/artist"
@@ -264,7 +264,7 @@ const viewAllStyle = {
             maxWidth: '20ch',
           }"
         >
-          "The greatest English painter in watercolour of our time."
+          "I regard the paintings of Knighton-Hammond as the finest examples of English watercolour of our time."
           <cite
             :style="{
               display: 'block',
@@ -276,7 +276,7 @@ const viewAllStyle = {
               letterSpacing: '0.06em',
             }"
           >
-            — Augustus John, c. 1930
+            — Peter Norris, Biographer
           </cite>
         </blockquote>
       </div>

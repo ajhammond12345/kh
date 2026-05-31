@@ -14,7 +14,7 @@ useHead({ title: 'About Us — Knighton-Hammond Charitable Trust' })
 
     <div class="kh-prose">
       <p>
-        The Knighton-Hammond Charitable Trust was set up in 2025 in the name of the artist
+        The Knighton-Hammond Charitable Trust was established in the name of the artist
         Arthur Henry Knighton-Hammond by members of his family and his biographer. The Trust exists
         to promote the artist for the people of Nottingham and the wider community.
       </p>

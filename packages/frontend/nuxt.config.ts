@@ -10,8 +10,8 @@ export default defineNuxtConfig({
 
   googleFonts: {
     families: {
-      'Caveat': [400, 600, 700],
-      'Cormorant Garamond': [300, 400, 500, 600, 700],
+      'EB Garamond': [400, 500, 600],
+      'Source Serif 4': [300, 400, 500, 600],
       'Inter': [300, 400, 500, 600],
     },
     display: 'swap',
