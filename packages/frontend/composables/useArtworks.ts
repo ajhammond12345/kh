@@ -37,7 +37,7 @@ type RawArtwork = {
 }
 
 const ARTWORKS: GalleryArtwork[] = (artworksData as RawArtwork[]).map((raw, i) => ({
-  id: raw.slug,
+  id: raw.slug.replace(/\//g, '-'),
   title: raw.title,
   year: raw.date || '',
   medium: raw.medium || '',
