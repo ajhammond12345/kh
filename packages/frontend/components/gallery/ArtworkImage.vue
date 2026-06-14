@@ -6,11 +6,23 @@ const props = withDefaults(defineProps<{
   frame?: 'plate' | 'bare' | 'deep'
   ratio?: string
   lazy?: boolean
+  size?: 'thumb' | 'medium' | 'large'
 }>(), {
   frame: 'plate',
   ratio: '4 / 5',
   lazy: true,
+  size: 'medium',
 })
+
+const { imageUrl } = useGallery()
+
+// Prefer the self-hosted image; fall back to the original source once if it
+// hasn't been imported to disk yet.
+const src = ref(imageUrl(props.work.id, props.size) || props.work.image)
+
+function onError() {
+  if (props.work.image && src.value !== props.work.image) src.value = props.work.image
+}
 
 const innerStyle = computed(() => ({
   display: 'block',
@@ -33,17 +45,19 @@ const wrapperStyle = computed(() => {
 <template>
   <div v-if="frame !== 'bare'" :style="wrapperStyle">
     <img
-      :src="work.image"
+      :src="src"
       :alt="work.title"
       :loading="lazy ? 'lazy' : undefined"
       :style="innerStyle"
+      @error="onError"
     />
   </div>
   <img
     v-else
-    :src="work.image"
+    :src="src"
     :alt="work.title"
     :loading="lazy ? 'lazy' : undefined"
     :style="innerStyle"
+    @error="onError"
   />
 </template>

@@ -6,6 +6,12 @@ const slug = route.params.slug as string
 const work = artworks.find((w) => w.id === slug) || null
 const lightboxOpen = ref(false)
 
+const { imageUrl } = useGallery()
+const lightboxSrc = ref(work ? (imageUrl(work.id, 'large') || work.image) : '')
+function onLightboxError() {
+  if (work?.image && lightboxSrc.value !== work.image) lightboxSrc.value = work.image
+}
+
 if (work) {
   useHead({ title: `${work.title} — Knighton-Hammond` })
 } else {
@@ -149,10 +155,11 @@ if (work) {
             &times;
           </button>
           <img
-            :src="work.image"
+            :src="lightboxSrc"
             :alt="work.title"
             :style="{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }"
             @click.stop
+            @error="onLightboxError"
           />
         </div>
       </Transition>
