@@ -6,13 +6,14 @@ import { processImage } from '../src/services/image-pipeline.js'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DATA_FILE = path.join(__dirname, '../../frontend/data/artworks-scraped.json')
 const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, '../data/uploads')
-const CONCURRENCY = 8
+const CONCURRENCY = Number(process.env.IMPORT_CONCURRENCY) || 4
 
 type RawArtwork = { title: string; image: string; slug: string }
 
-// Must match the id the frontend uses (composables/useArtworks.ts) so the
-// generated files line up with /api/images/:id/:size requests.
-const idFor = (slug: string) => slug.replace(/\//g, '-')
+// Slugs are canonical (url-safe, unique) in artworks-scraped.json and the
+// frontend uses them verbatim as the id, so the generated files line up with
+// /api/images/:id/:size requests.
+const idFor = (slug: string) => slug
 
 const force = process.argv.includes('--force')
 const limitArg = process.argv.find((a) => a.startsWith('--limit='))
@@ -27,7 +28,9 @@ let failed = 0
 
 async function importOne(raw: RawArtwork) {
   const id = idFor(raw.slug)
-  const marker = path.join(UPLOADS_DIR, 'original', `${id}.jpg`)
+  // processImage writes 'large' last, so treat it as the done-marker — a run
+  // that died mid-pipeline then re-runs and completes instead of being skipped.
+  const marker = path.join(UPLOADS_DIR, 'large', `${id}.jpg`)
   if (!force && existsSync(marker)) {
     skipped++
     return
