@@ -1,0 +1,13 @@
+rules_version = '2';
+// Not yet deployable — Cloud Storage for Firebase needs billing (Blaze).
+// Global read, admin-only write, mirroring firestore.rules.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.auth.token.email_verified == true
+        && firestore.exists(/databases/(default)/documents/admins/$(request.auth.token.email.lower()));
+    }
+  }
+}

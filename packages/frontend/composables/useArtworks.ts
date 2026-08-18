@@ -1,17 +1,19 @@
-import artworksData from '~/data/artworks-scraped.json'
+import { doc, getDoc } from 'firebase/firestore'
 
 export type GalleryArtwork = {
   id: string
   title: string
   year: string
+  decade: string
   medium: string
   dim: string
   location: string
   subject: string
   image: string
   signature: string
+  dominantColor: string | null
   tags: string[]
-  status: 'published'
+  status: 'published' | 'draft'
   blurb: string
 }
 
@@ -23,33 +25,25 @@ export type JournalEntry = {
   author: string
 }
 
-type RawArtwork = {
-  title: string
-  image: string
+export type CatalogItem = {
   slug: string
-  location: string | null
-  subject: string | null
-  medium: string | null
+  title: string
   date: string | null
+  decade: string | null
+  medium: string | null
+  subject: string | null
+  location: string | null
   signature: string | null
   dimensions: string | null
-  blurb: string | null
+  dominantColor: string | null
 }
 
-const ARTWORKS: GalleryArtwork[] = (artworksData as RawArtwork[]).map((raw, i) => ({
-  id: raw.slug,
-  title: raw.title,
-  year: raw.date || '',
-  medium: raw.medium || '',
-  dim: raw.dimensions || '',
-  location: raw.location || '',
-  subject: raw.subject || '',
-  image: raw.image,
-  signature: raw.signature || '',
-  tags: [raw.subject, raw.medium].filter(Boolean) as string[],
-  status: 'published' as const,
-  blurb: raw.blurb || '',
-}))
+export type ArtworkDoc = CatalogItem & {
+  description: string | null
+  imageBase: string | null
+  published: boolean
+  displayOrder: number
+}
 
 const JOURNAL: JournalEntry[] = [
   { id: 'j-001', date: '03 December 2025', title: 'The Knighton-Hammond Gallery Project', dek: 'The Trust is seeking a partner organisation to establish a permanent gallery for the display of works by the Nottingham artist, Arthur Henry Knighton-Hammond.', author: 'Michael Hammond, Chair' },
@@ -59,7 +53,74 @@ const JOURNAL: JournalEntry[] = [
   { id: 'j-005', date: '22 September 2025', title: 'The Opening Evening at NTU Brackenhurst Campus', dek: 'The opening evening for the exhibition of works by Knighton-Hammond at Nottingham Trent University.', author: 'Peter Norris, Secretary' },
 ]
 
-export const useArtworks = () => ({
-  artworks: ARTWORKS as readonly GalleryArtwork[],
-  journal: JOURNAL as readonly JournalEntry[],
-})
+let catalogPromise: Promise<void> | null = null
+
+export const useArtworks = () => {
+  const { imageUrl } = useGallery()
+  const catalog = useState<GalleryArtwork[]>('kh-catalog', () => [])
+
+  function fromCatalogItem(item: CatalogItem, imageBase?: string | null): GalleryArtwork {
+    return {
+      id: item.slug,
+      title: item.title,
+      year: item.date || '',
+      decade: item.decade || '',
+      medium: item.medium || '',
+      dim: item.dimensions || '',
+      location: item.location || '',
+      subject: item.subject || '',
+      image: imageUrl(item.slug, 'large', 'jpg', imageBase),
+      signature: item.signature || '',
+      dominantColor: item.dominantColor || null,
+      tags: [item.subject, item.medium].filter(Boolean) as string[],
+      status: 'published',
+      blurb: '',
+    }
+  }
+
+  function loadCatalog(): Promise<void> {
+    if (!import.meta.client) return Promise.resolve()
+    if (!catalogPromise) {
+      const db = useFirebase().getFirestoreDb()
+      catalogPromise = getDoc(doc(db, 'catalog', 'artworks'))
+        .then((snap) => {
+          const items = (snap.exists() ? (snap.data().items as CatalogItem[]) : null) || []
+          catalog.value.splice(0, catalog.value.length, ...items.map((it) => fromCatalogItem(it)))
+        })
+        .catch((err) => {
+          catalogPromise = null
+          throw err
+        })
+    }
+    return catalogPromise
+  }
+
+  if (import.meta.client) {
+    loadCatalog().catch((err) => console.error('Failed to load artwork catalogue', err))
+  }
+
+  async function getArtwork(slug: string): Promise<GalleryArtwork | null> {
+    await loadCatalog().catch(() => {})
+    const summary = catalog.value.find((w) => w.id === slug) || null
+    try {
+      const db = useFirebase().getFirestoreDb()
+      const snap = await getDoc(doc(db, 'artworks', slug))
+      if (!snap.exists()) return summary
+      const d = snap.data() as ArtworkDoc
+      return {
+        ...fromCatalogItem({ ...d, slug }, d.imageBase),
+        status: d.published ? 'published' : 'draft',
+        blurb: d.description || '',
+      }
+    } catch {
+      return summary
+    }
+  }
+
+  return {
+    artworks: catalog.value as readonly GalleryArtwork[],
+    journal: JOURNAL as readonly JournalEntry[],
+    loadCatalog,
+    getArtwork,
+  }
+}

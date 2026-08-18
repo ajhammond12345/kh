@@ -1,6 +1,8 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-01-01',
 
+  ssr: false,
+
   modules: [
     '@nuxtjs/tailwindcss',
     '@nuxtjs/google-fonts',
@@ -33,7 +35,14 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: process.env.API_BASE || 'http://localhost:3000',
+      firebase: {
+        apiKey: 'REDACTED-FIREBASE-WEB-API-KEY',
+        authDomain: 'ajh-kh-gallery.firebaseapp.com',
+        projectId: 'ajh-kh-gallery',
+        appId: '1:324439644898:web:160368f67d2193e15b9cbb',
+        messagingSenderId: '324439644898',
+      },
+      imageBase: '/images',
     },
   },
 

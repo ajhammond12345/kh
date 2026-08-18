@@ -6,3 +6,9 @@ packages/backend/data/
 .env
 *.db
 .DS_Store
+deploy/
+.firebase/
+packages/frontend/public/images/thumb
+packages/frontend/public/images/medium
+packages/frontend/public/images/large
+packages/frontend/dist

@@ -1,22 +1,17 @@
 <script setup lang="ts">
 const route = useRoute()
-const { artworks } = useArtworks()
+const { getArtwork } = useArtworks()
 
 const slug = route.params.slug as string
-const work = artworks.find((w) => w.id === slug) || null
+const { data: work } = await useAsyncData(`artwork-${slug}`, () => getArtwork(slug))
 const lightboxOpen = ref(false)
+const lightboxSrc = computed(() => work.value?.image || '')
 
-const { imageUrl } = useGallery()
-const lightboxSrc = ref(work ? (imageUrl(work.id, 'large') || work.image) : '')
-function onLightboxError() {
-  if (work?.image && lightboxSrc.value !== work.image) lightboxSrc.value = work.image
-}
-
-if (work) {
-  useHead({ title: `${work.title} — Knighton-Hammond` })
-} else {
-  useHead({ title: 'Artwork Not Found — Knighton-Hammond' })
-}
+useHead({
+  title: computed(() =>
+    work.value ? `${work.value.title} — Knighton-Hammond` : 'Artwork Not Found — Knighton-Hammond',
+  ),
+})
 </script>
 
 <template>
@@ -159,7 +154,6 @@ if (work) {
             :alt="work.title"
             :style="{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }"
             @click.stop
-            @error="onLightboxError"
           />
         </div>
       </Transition>

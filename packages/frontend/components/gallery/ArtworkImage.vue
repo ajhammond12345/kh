@@ -16,13 +16,17 @@ const props = withDefaults(defineProps<{
 
 const { imageUrl } = useGallery()
 
-// Prefer the self-hosted image; fall back to the original source once if it
-// hasn't been imported to disk yet.
-const src = ref(imageUrl(props.work.id, props.size) || props.work.image)
+const failed = ref(false)
+watch(() => props.work.id, () => { failed.value = false })
 
-function onError() {
-  if (props.work.image && src.value !== props.work.image) src.value = props.work.image
-}
+const placeholder = computed(() => props.work.dominantColor || 'var(--parchment)')
+
+const pictureStyle = computed(() => ({
+  display: 'block',
+  width: '100%',
+  height: '100%',
+  background: placeholder.value,
+}))
 
 const innerStyle = computed(() => ({
   display: 'block',
@@ -32,8 +36,15 @@ const innerStyle = computed(() => ({
   aspectRatio: props.ratio,
 }))
 
+const fallbackStyle = computed(() => ({
+  width: '100%',
+  height: '100%',
+  aspectRatio: props.ratio === 'auto' ? '4 / 5' : props.ratio,
+  background: placeholder.value,
+}))
+
 const wrapperStyle = computed(() => {
-  if (props.frame === 'bare') return undefined
+  if (props.frame === 'bare') return { width: '100%', height: '100%' }
   return {
     background: 'var(--paper-2)',
     padding: props.frame === 'deep' ? '22px' : '14px',
@@ -43,21 +54,17 @@ const wrapperStyle = computed(() => {
 </script>
 
 <template>
-  <div v-if="frame !== 'bare'" :style="wrapperStyle">
-    <img
-      :src="src"
-      :alt="work.title"
-      :loading="lazy ? 'lazy' : undefined"
-      :style="innerStyle"
-      @error="onError"
-    />
+  <div :style="wrapperStyle">
+    <picture v-if="!failed" :style="pictureStyle">
+      <source type="image/webp" :srcset="imageUrl(work.id, size, 'webp')" />
+      <img
+        :src="imageUrl(work.id, size, 'jpg')"
+        :alt="work.title"
+        :loading="lazy ? 'lazy' : undefined"
+        :style="innerStyle"
+        @error="failed = true"
+      />
+    </picture>
+    <div v-else role="img" :aria-label="work.title" :style="fallbackStyle" />
   </div>
-  <img
-    v-else
-    :src="src"
-    :alt="work.title"
-    :loading="lazy ? 'lazy' : undefined"
-    :style="innerStyle"
-    @error="onError"
-  />
 </template>
