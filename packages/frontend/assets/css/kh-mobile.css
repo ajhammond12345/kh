@@ -29,6 +29,14 @@
     grid-template-columns: repeat(2, 1fr) !important;
   }
 
+  /* Our-purpose section ("Conserving a quiet legacy" + pull quote): the only
+     '1fr 1fr' grid. Two columns leave the 52px heading ~150px of width on
+     phones, where overflow-wrap: anywhere shatters it mid-word — stack it. */
+  section > div[style*="1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 48px !important;
+  }
+
   [data-screen-label="Footer"] > div:first-of-type {
     grid-template-columns: 1fr 1fr !important;
     gap: 32px !important;
