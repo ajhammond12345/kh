@@ -35,10 +35,10 @@ const libraryFiltered = computed<GalleryArtwork[]>(() => {
   <div :style="{ maxWidth: '1320px', margin: '64px auto 0', padding: '0 32px 96px' }">
     <div :style="{ display: 'flex', alignItems: 'center', gap: '12px', fontFamily: 'var(--font-ui)', fontSize: '11px', letterSpacing: '0.20em', fontWeight: 600, color: 'var(--ink-3)', marginBottom: '16px', textTransform: 'uppercase' }">
       <span :style="{ display: 'inline-block', width: '24px', height: '1px', background: 'var(--sienna)' }" />
-      THE COMPLETE CATALOGUE
+      THE CATALOGUE SO FAR
     </div>
     <h1 :style="{ fontFamily: 'var(--font-display)', fontSize: '48px', fontWeight: 500, lineHeight: 1.08, letterSpacing: '-0.01em', color: 'var(--ink)', margin: '0 0 40px' }">
-      All {{ all.length }} works
+      {{ all.length }} works catalogued
     </h1>
 
     <div :style="{ marginBottom: '32px' }">

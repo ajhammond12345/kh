@@ -39,7 +39,6 @@ const linkStyle = {
         </p>
         <div :style="{ fontFamily: 'var(--font-ui)', fontSize: '11.5px', color: 'var(--ink-3)', lineHeight: 1.7 }">
           <div>Reg. charity no. 1170032</div>
-          <div>Catalogue compiled 1994 – present.</div>
         </div>
       </div>
 
@@ -52,7 +51,7 @@ const linkStyle = {
             <NuxtLink to="/artist" :style="linkStyle">Biography</NuxtLink>
           </li>
           <li :style="{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--ink)', padding: '5px 0' }">
-            <NuxtLink to="/library" :style="linkStyle">Catalogue raisonné</NuxtLink>
+            <NuxtLink to="/library" :style="linkStyle">Artwork library</NuxtLink>
           </li>
           <li :style="{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--ink)', padding: '5px 0' }">
             <NuxtLink to="/media" :style="linkStyle">Media &amp; bibliography</NuxtLink>

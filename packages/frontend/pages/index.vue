@@ -88,9 +88,9 @@ const viewAllStyle = {
         <div
           v-for="(s, i) in [
             { n: all.length, k: 'works catalogued' },
-            { n: '48', k: 'years of practice' },
-            { n: '9', k: 'countries painted' },
-            { n: '3', k: 'major collections' },
+            { n: '80', k: 'years of practice' },
+            { n: '7', k: 'countries painted' },
+            { n: '5', k: 'media represented' },
           ]"
           :key="i"
           :style="{
@@ -226,7 +226,7 @@ const viewAllStyle = {
           >
             Knighton-Hammond painted for nearly eighty years. His prolific
             output — landscapes, portraits, industrial commissions and
-            continental watercolours — sits scattered across private collections
+            continental paintings — sits scattered across private collections
             and provincial galleries. The Trust's work is to find these
             paintings, catalogue them, and make their stories accessible to
             anyone who cares to look.
@@ -264,7 +264,7 @@ const viewAllStyle = {
             maxWidth: '20ch',
           }"
         >
-          "I regard the paintings of Knighton-Hammond as the finest examples of English watercolour of our time."
+          "I regard the paintings of Knighton-Hammond as the finest examples of English watercolours of his time."
           <cite
             :style="{
               display: 'block',

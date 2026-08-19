@@ -140,9 +140,9 @@ onBeforeUnmount(() => {
           textShadow: '0 1px 8px rgb(0 0 0 / 0.18)',
         }"
       >
-        Forty-eight years of letters, sketchbooks, society portraits and
-        watercolours by Arthur Henry Knighton-Hammond — assembled as a single
-        public catalogue, searchable to the last work.
+        Eighty years of sketchbooks, society portraits and paintings by
+        Arthur Henry Knighton-Hammond — assembled as a single, searchable
+        public catalogue.
       </p>
       <div :style="{ display: 'flex', gap: '18px', alignItems: 'center', flexWrap: 'wrap' }">
         <NuxtLink
