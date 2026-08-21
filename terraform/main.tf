@@ -134,3 +134,76 @@ resource "google_firestore_document" "seed_admin" {
   document_id = "ajhammond123@gmail.com"
   fields      = jsonencode({ addedBy = { stringValue = "terraform" } })
 }
+
+# --- dev environment (mirrors prod; Auth needs the same one-time console
+# enable on the dev project until billing unlocks auth_managed) ---
+
+resource "google_project" "kh_gallery_dev" {
+  project_id      = var.dev_project_id
+  name            = "KH Gallery Dev"
+  deletion_policy = "PREVENT"
+}
+
+resource "google_project_service" "services_dev" {
+  for_each = toset([
+    "firebase.googleapis.com",
+    "firebasehosting.googleapis.com",
+    "firestore.googleapis.com",
+    "identitytoolkit.googleapis.com",
+    "firebaserules.googleapis.com",
+    "firebasestorage.googleapis.com",
+    "serviceusage.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
+  ])
+
+  project = google_project.kh_gallery_dev.project_id
+  service = each.value
+
+  disable_on_destroy = false
+}
+
+resource "google_firebase_project" "dev" {
+  provider = google-beta
+  project  = google_project.kh_gallery_dev.project_id
+
+  depends_on = [google_project_service.services_dev]
+}
+
+resource "google_firebase_hosting_site" "dev" {
+  provider = google-beta
+  project  = google_project.kh_gallery_dev.project_id
+  site_id  = var.dev_project_id
+
+  depends_on = [google_firebase_project.dev]
+}
+
+resource "google_firebase_web_app" "gallery_dev" {
+  provider     = google-beta
+  project      = google_project.kh_gallery_dev.project_id
+  display_name = "KH Gallery Dev"
+
+  depends_on = [google_firebase_project.dev]
+}
+
+data "google_firebase_web_app_config" "gallery_dev" {
+  provider   = google-beta
+  project    = google_project.kh_gallery_dev.project_id
+  web_app_id = google_firebase_web_app.gallery_dev.app_id
+}
+
+resource "google_firestore_database" "dev" {
+  project     = google_project.kh_gallery_dev.project_id
+  name        = "(default)"
+  location_id = "nam5"
+  type        = "FIRESTORE_NATIVE"
+
+  depends_on = [google_project_service.services_dev]
+}
+
+resource "google_firestore_document" "seed_admin_dev" {
+  project     = google_project.kh_gallery_dev.project_id
+  database    = google_firestore_database.dev.name
+  collection  = "admins"
+  document_id = "ajhammond123@gmail.com"
+  fields      = jsonencode({ addedBy = { stringValue = "terraform" } })
+}

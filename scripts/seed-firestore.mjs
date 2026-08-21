@@ -49,7 +49,10 @@ const toDecade = (date) => {
   return m ? `${Math.floor(Number(m[1]) / 10) * 10}s` : null;
 };
 
-initializeApp({ credential: applicationDefault(), projectId: 'ajh-kh-gallery' });
+initializeApp({
+  credential: applicationDefault(),
+  projectId: process.env.FIREBASE_PROJECT || 'ajh-kh-gallery',
+});
 const firestore = getFirestore();
 
 const hex = (v) => v.toString(16).padStart(2, '0');

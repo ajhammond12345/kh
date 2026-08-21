@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "ajh-kh-gallery"
+    "default": "ajh-kh-gallery",
+    "prod": "ajh-kh-gallery",
+    "dev": "ajh-kh-gallery-dev"
   }
 }

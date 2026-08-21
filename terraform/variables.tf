@@ -3,6 +3,11 @@ variable "project_id" {
   default = "ajh-kh-gallery"
 }
 
+variable "dev_project_id" {
+  type    = string
+  default = "ajh-kh-gallery-dev"
+}
+
 variable "auth_managed" {
   description = "Manage Identity Platform config in terraform. Requires billing (initializeAuth is billing-gated); until then enable Auth providers in the Firebase console."
   type        = bool

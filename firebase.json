@@ -1,6 +1,5 @@
 {
   "hosting": {
-    "site": "ajh-kh-gallery",
     "public": "deploy",
     "ignore": ["firebase.json", "**/.*"],
     "rewrites": [{ "source": "**", "destination": "/200.html" }],
