@@ -35,12 +35,15 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
+      // Filled from NUXT_PUBLIC_FIREBASE_* at build/dev time — values come
+      // from `terraform output web_app_config[_dev]` via scripts/firebase-env.sh
+      // (kept out of git so secret scanners stay quiet).
       firebase: {
-        apiKey: 'REDACTED-FIREBASE-WEB-API-KEY',
-        authDomain: 'ajh-kh-gallery.firebaseapp.com',
-        projectId: 'ajh-kh-gallery',
-        appId: '1:324439644898:web:160368f67d2193e15b9cbb',
-        messagingSenderId: '324439644898',
+        apiKey: '',
+        authDomain: '',
+        projectId: '',
+        appId: '',
+        messagingSenderId: '',
       },
       imageBase: '/images',
     },

@@ -9,18 +9,14 @@ cd "$(dirname "$0")"
 
 ENV="${1:-prod}"
 case "$ENV" in
-  prod) ;;
-  dev)
-    # Bakes the dev Firebase project into the static build (values are the
-    # public web-app config from `terraform output web_app_config_dev`).
-    export NUXT_PUBLIC_FIREBASE_API_KEY="REDACTED-FIREBASE-WEB-API-KEY"
-    export NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN="ajh-kh-gallery-dev.firebaseapp.com"
-    export NUXT_PUBLIC_FIREBASE_PROJECT_ID="ajh-kh-gallery-dev"
-    export NUXT_PUBLIC_FIREBASE_APP_ID="1:656824599840:web:a29735b846cdf3fc7fc345"
-    export NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="656824599840"
-    ;;
+  prod|dev) ;;
   *) echo "usage: ./deploy.sh [prod|dev]" >&2; exit 1 ;;
 esac
+
+# Bake the environment's Firebase web-app config into the static build.
+set -a
+eval "$(scripts/firebase-env.sh "$ENV")"
+set +a
 
 KH_DATA="${KH_DATA:-$(dirname "$PWD")/kh-data/uploads}"
 [ -d "$KH_DATA/thumb" ] || { echo "image tree not found at $KH_DATA" >&2; exit 1; }
