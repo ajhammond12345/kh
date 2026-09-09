@@ -25,3 +25,9 @@ variable "custom_domain" {
   type        = string
   default     = "knighton-hammond.com"
 }
+
+variable "firebase_admins" {
+  description = "Google accounts granted roles/firebase.admin on the prod project and a gallery admins/ doc. Lowercase emails."
+  type        = set(string)
+  default     = ["nicolasjhammond@gmail.com"]
+}

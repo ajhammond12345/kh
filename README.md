@@ -9,8 +9,8 @@ fallback URL https://ajh-kh-gallery.web.app, Firebase project `ajh-kh-gallery`).
 - `packages/frontend` — Nuxt 3 SPA (`ssr: false`), deployed to Firebase Hosting
 - **Firestore** — artwork metadata. `catalog/artworks` is a single summary doc
   the public site reads (one read per visit); `artworks/{slug}` holds full
-  records; `admins/{email}` grants admin (doc ID = lowercased email,
-  `ajhammond123@gmail.com` pre-seeded via terraform)
+  records; `admins/{email}` grants admin (doc ID = lowercased email;
+  `ajhammond123@gmail.com` + the `firebase_admins` terraform var are pre-seeded)
 - **Images** — pre-generated variants (`/images/{thumb|medium|large}/{slug}.{webp|jpg}`)
   served as Hosting static files from the `kh-data` tree (outside the repo)
 - **Auth** — Firebase Auth (Google sign-in + email link) guarding `/admin`

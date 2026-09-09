@@ -232,3 +232,25 @@ resource "google_firebase_hosting_custom_domain" "www" {
   redirect_target       = var.custom_domain
   wait_dns_verification = false
 }
+
+# --- project access ---
+# Owners (project creator + terraform SA) are managed outside terraform.
+
+resource "google_project_iam_member" "firebase_admins" {
+  for_each = var.firebase_admins
+
+  project = google_project.kh_gallery.project_id
+  role    = "roles/firebase.admin"
+  member  = "user:${each.value}"
+}
+
+# The same people get the gallery admin UI (firestore.rules isAdmin()).
+resource "google_firestore_document" "admins" {
+  for_each = var.firebase_admins
+
+  project     = google_project.kh_gallery.project_id
+  database    = google_firestore_database.default.name
+  collection  = "admins"
+  document_id = each.value
+  fields      = jsonencode({ addedBy = { stringValue = "terraform" } })
+}
