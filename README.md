@@ -1,8 +1,8 @@
 # kh — Knighton-Hammond gallery site
 
 Public gallery + admin for the Knighton-Hammond Charitable Trust art
-collection. Live at https://ajh-kh-gallery.web.app (Firebase project
-`ajh-kh-gallery`).
+collection. Live at https://knighton-hammond.com (`www.` 301s to the apex;
+fallback URL https://ajh-kh-gallery.web.app, Firebase project `ajh-kh-gallery`).
 
 ## Architecture
 
@@ -52,6 +52,27 @@ Firestore, web app, seeded admin doc). Remote state: `gs://kh-infra` (see the
 repo; local state via `terraform/backend_override.tf` until that bucket
 exists). `ajh-infrastructure` is the management project — it carries billing
 and API quota attribution; this project stays on the free Spark plan.
+
+### Custom domain / DNS
+
+`knighton-hammond.com` and `www.knighton-hammond.com` are declared in
+`terraform/` as `google_firebase_hosting_custom_domain` resources. Terraform
+does not wait for DNS; the zone (nameservers at mydomain.com) has to be
+updated by hand. Only touch the apex A record, the `www` CNAME and the
+`hosting-site` TXT — leave MX / `mx.knighton-hammond.com` and any SPF TXT
+alone, email runs on the same domain.
+
+```bash
+cd terraform
+terraform apply -refresh-only -auto-approve
+terraform output custom_domain_dns      # outstanding ADD / REMOVE records
+terraform output custom_domain_status   # HOST_ACTIVE / OWNERSHIP_ACTIVE when done
+```
+
+Once the records propagate, Firebase verifies ownership and issues the
+certificate on its own (usually under an hour, up to 24h). Admin sign-in from
+the new domain also needs it listed under Authentication → Settings →
+Authorized domains (automatic once `auth_managed` is on).
 
 Billing-gated (deliberately deferred):
 - **Runtime image uploads** — need Cloud Storage for Firebase (Blaze);

@@ -119,6 +119,8 @@ resource "google_identity_platform_config" "auth" {
     "localhost",
     "${var.project_id}.web.app",
     "${var.project_id}.firebaseapp.com",
+    var.custom_domain,
+    "www.${var.custom_domain}",
   ]
 
   depends_on = [google_project_service.services, google_firebase_project.default]
@@ -206,4 +208,27 @@ resource "google_firestore_document" "seed_admin_dev" {
   collection  = "admins"
   document_id = "ajhammond123@gmail.com"
   fields      = jsonencode({ addedBy = { stringValue = "terraform" } })
+}
+
+# --- custom domain (prod only) ---
+# wait_dns_verification stays false so apply doesn't block on the registrar;
+# the records to set are in the `custom_domain_dns` output.
+
+resource "google_firebase_hosting_custom_domain" "apex" {
+  provider = google-beta
+  project  = google_project.kh_gallery.project_id
+  site_id  = google_firebase_hosting_site.default.site_id
+
+  custom_domain         = var.custom_domain
+  wait_dns_verification = false
+}
+
+resource "google_firebase_hosting_custom_domain" "www" {
+  provider = google-beta
+  project  = google_project.kh_gallery.project_id
+  site_id  = google_firebase_hosting_site.default.site_id
+
+  custom_domain         = "www.${var.custom_domain}"
+  redirect_target       = var.custom_domain
+  wait_dns_verification = false
 }

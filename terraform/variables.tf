@@ -19,3 +19,9 @@ variable "management_project" {
   type        = string
   default     = "ajh-infrastructure"
 }
+
+variable "custom_domain" {
+  description = "Apex domain served by the prod hosting site; www.<domain> redirects to it."
+  type        = string
+  default     = "knighton-hammond.com"
+}
