@@ -47,11 +47,13 @@ GOOGLE_APPLICATION_CREDENTIALS=<sa-key> node scripts/seed-firestore.mjs
 ## Infrastructure
 
 `terraform/` manages the GCP/Firebase resources (project, hosting site,
-Firestore, web app, seeded admin doc). Remote state: `gs://kh-infra` (see the
+Firestore, web app, Auth config, admins, custom domain). Remote state:
+`gs://kh-infra` (see the
 [ajh-infrastructure](https://github.com/ajhammond12345/ajh-infrastructure)
-repo; local state via `terraform/backend_override.tf` until that bucket
-exists). `ajh-infrastructure` is the management project — it carries billing
-and API quota attribution; this project stays on the free Spark plan.
+repo). `ajh-infrastructure` is the management project for API quota
+attribution; the prod project is linked to the same billing account because
+Identity Platform (the Auth config) needs billing on the project itself. Dev
+stays on Spark, so dev has no Auth and no admin login.
 
 ### Custom domain / DNS
 
@@ -70,14 +72,29 @@ terraform output custom_domain_status   # HOST_ACTIVE / OWNERSHIP_ACTIVE when do
 ```
 
 Once the records propagate, Firebase verifies ownership and issues the
-certificate on its own (usually under an hour, up to 24h). Admin sign-in from
-the new domain also needs it listed under Authentication → Settings →
-Authorized domains (automatic once `auth_managed` is on).
+certificate on its own (usually under an hour, up to 24h). Both hostnames are
+Auth authorized domains via terraform.
 
-Billing-gated (deliberately deferred):
-- **Runtime image uploads** — need Cloud Storage for Firebase (Blaze);
-  `storage.rules` is ready, the admin UI shows uploads as locked
-- **Terraform-managed Auth config** — `initializeAuth` requires billing, so
-  Auth providers are enabled once by hand in the Firebase console
-  (Authentication → Sign-in method → enable **Google** and **Email link**);
-  set `auth_managed = true` + `terraform import` after billing exists
+### Auth / admin login
+
+- Email-link sign-in and the authorized-domain list are terraform-managed
+  (`google_identity_platform_config.auth`, prod only).
+- Who is an admin = `admins/{email}` docs (`firebase_admins` var + the seeded
+  owner); `/admin/login` then works with an email link straight away.
+- **Google sign-in** needs an OAuth client only the Firebase console can
+  create: Authentication → Sign-in method → Google → Enable → pick the support
+  email → Save. Then adopt it into terraform so it stays declared:
+
+  ```bash
+  cd terraform
+  TOKEN=$(gcloud auth application-default print-access-token)
+  curl -s -H "Authorization: Bearer $TOKEN" -H "x-goog-user-project: ajh-infrastructure" \
+    https://identitytoolkit.googleapis.com/admin/v2/projects/ajh-kh-gallery/defaultSupportedIdpConfigs/google.com \
+    | jq -r '"google_oauth_client_id = \"\(.clientId)\"\ngoogle_oauth_client_secret = \"\(.clientSecret)\""' >> terraform.tfvars
+  terraform import 'google_identity_platform_default_supported_idp_config.google[0]' \
+    projects/ajh-kh-gallery/defaultSupportedIdpConfigs/google.com
+  terraform plan   # expect: no changes
+  ```
+
+Still deferred: **runtime image uploads** (Cloud Storage for Firebase) —
+`storage.rules` is ready, the admin UI shows uploads as locked.

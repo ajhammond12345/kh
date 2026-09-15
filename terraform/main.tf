@@ -18,12 +18,10 @@ terraform {
   }
 }
 
-# ajh-infrastructure is the management project: it carries the (future)
-# billing account and is the quota project for all API calls; site projects
-# stay unbilled on the Spark plan. Note: runtime image uploads (Cloud Storage
-# for Firebase) and terraform-managed Auth config are the two features that
-# would additionally need billing on THIS project — revisit if either becomes
-# a priority.
+# ajh-infrastructure is the management project: it carries the billing
+# account and is the quota project for all API calls. The prod site project is
+# also billed (Identity Platform config and Cloud Storage uploads need billing
+# on the project itself); dev stays unbilled on the Spark plan.
 provider "google" {
   project               = var.project_id
   user_project_override = true
@@ -39,6 +37,7 @@ provider "google-beta" {
 resource "google_project" "kh_gallery" {
   project_id      = var.project_id
   name            = "KH Gallery"
+  billing_account = var.billing_account
   deletion_policy = "PREVENT"
 }
 
@@ -99,11 +98,10 @@ resource "google_firestore_database" "default" {
 }
 
 # initializeAuth (what this resource calls on create) is billing-gated even
-# though Firebase Auth itself is free on Spark — until a billing account is
-# linked, Auth must be enabled once in the Firebase console instead:
-#   Authentication → Get started → enable "Email link" and "Google".
-# After billing: set auth_managed=true and `terraform import
-# google_identity_platform_config.auth[0] projects/ajh-kh-gallery/config`.
+# though Firebase Auth itself is free, hence billing_account on the prod
+# project. Google sign-in is NOT declared here: its OAuth client can only be
+# auto-created by the Firebase console (Authentication → Sign-in method →
+# Google → Enable), and there is no API for that step.
 resource "google_identity_platform_config" "auth" {
   count   = var.auth_managed ? 1 : 0
   project = google_project.kh_gallery.project_id
@@ -113,6 +111,16 @@ resource "google_identity_platform_config" "auth" {
       enabled           = true
       password_required = false # email-link sign-in
     }
+    # Provider reads these back from the API even when unset; declaring the
+    # defaults keeps the plan clean.
+    phone_number {
+      enabled            = false
+      test_phone_numbers = {}
+    }
+  }
+
+  multi_tenant {
+    allow_tenants = false
   }
 
   authorized_domains = [
@@ -124,6 +132,24 @@ resource "google_identity_platform_config" "auth" {
   ]
 
   depends_on = [google_project_service.services, google_firebase_project.default]
+}
+
+# Google sign-in. Firebase's OAuth client for it can only be minted by the
+# Firebase console (Authentication → Sign-in method → Google → Enable); there
+# is no API for that step. Afterwards copy the client id/secret into
+# terraform.tfvars (gitignored) and adopt the provider config:
+#   terraform import 'google_identity_platform_default_supported_idp_config.google[0]' \
+#     projects/ajh-kh-gallery/defaultSupportedIdpConfigs/google.com
+resource "google_identity_platform_default_supported_idp_config" "google" {
+  count   = var.google_oauth_client_id != "" ? 1 : 0
+  project = google_project.kh_gallery.project_id
+  idp_id  = "google.com"
+  enabled = true
+
+  client_id     = var.google_oauth_client_id
+  client_secret = var.google_oauth_client_secret
+
+  depends_on = [google_identity_platform_config.auth]
 }
 
 # Pre-seeded admin. The firestore.rules isAdmin() check looks this document up
