@@ -12,7 +12,7 @@ async function signOut() {
   <div class="kh kh-paper-grain" :style="{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }">
     <header class="kha-header">
       <NuxtLink to="/" class="kha-brand">
-        <span class="kha-brand-name">Knighton Hammond</span>
+        <span class="kha-brand-name">Knighton-Hammond</span>
         <span class="kha-brand-sub">
           <span :style="{ width: '18px', height: '1px', background: 'var(--sienna)', display: 'inline-block' }" />
           ADMINISTRATION

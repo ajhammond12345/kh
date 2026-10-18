@@ -2,7 +2,7 @@
 import type { GalleryArtwork } from '~/composables/useArtworks'
 
 useHead({
-  title: 'Knighton Hammond Charitable Trust — The artwork library',
+  title: 'Knighton-Hammond Charitable Trust — The artwork library',
   meta: [
     {
       name: 'description',
@@ -89,7 +89,7 @@ const viewAllStyle = {
           v-for="(s, i) in [
             { n: all.length, k: 'works catalogued' },
             { n: '80', k: 'years of practice' },
-            { n: '7', k: 'countries painted' },
+            { n: '6', k: 'countries painted' },
             { n: '5', k: 'media represented' },
           ]"
           :key="i"
@@ -295,7 +295,7 @@ const viewAllStyle = {
         <NuxtLink
           v-for="j in journal.slice(0, 3)"
           :key="j.id"
-          to="/blog"
+          :to="j.path || '/blog'"
           :style="{
             background: 'transparent',
             border: 0,

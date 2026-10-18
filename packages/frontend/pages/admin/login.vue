@@ -68,7 +68,7 @@ async function switchAccount() {
   <div class="kh kh-paper-grain khl-page">
     <div class="khl-card">
       <div class="khl-brand">
-        <div class="khl-brand-name">Knighton Hammond</div>
+        <div class="khl-brand-name">Knighton-Hammond</div>
         <div class="khl-brand-sub">
           <span :style="{ width: '18px', height: '1px', background: 'var(--sienna)', display: 'inline-block' }" />
           ADMINISTRATION

@@ -1,5 +1,53 @@
 [
   {
+    "title": "Early Morning, Dorset",
+    "image": null,
+    "slug": "early-morning-dorset",
+    "location": "Dorset, UK",
+    "subject": "Landscape",
+    "medium": "Watercolour",
+    "date": "1950s",
+    "signature": "Knighton-Hammond",
+    "dimensions": "27 cm x 38 cm",
+    "blurb": "Early Morning, Dorset would date from the late 1950s and demonstrates Knighton-Hammond’s skill in the depiction of the sky: the source of light which illuminates the landscape. We know from the artist’s personal studio collection of cloud studies that this was a subject that intrigued him. He studied the cloud studies of John Constable in the Tate Gallery which helped to inform his technique. The freely painted landscape is colourful and fluid with atmosphere complementing the dramatic sky. Knighton-Hammond achieves recession in the landscape by the use of local and atmospheric colour (greens in the foreground and blue in the background)."
+  },
+  {
+    "title": "The Meeting of the Hunt",
+    "image": null,
+    "slug": "the-meeting-of-the-hunt",
+    "location": null,
+    "subject": "Hunting Scene",
+    "medium": "Watercolour",
+    "date": null,
+    "signature": "Arthur Hammond",
+    "dimensions": "64 cm x 56 cm",
+    "blurb": "This scene shows a hunt meeting at the entrance of an impressive Manor house. Knighton-Hammond depicts the fine architectural elements such as the masonry piers framing the steps outlined in pen and ink to add to the definition. The hunting pinks make the riders stand out poised on their horses. The pack of hounds demonstrate the artist's skill with foreshortening as they moved towards the spectator. There is a sense of expectation as they prepare to seek out their quarry. The Butler has a tray full of drinks. The horses and hounds are restless. The huntswoman is riding side-saddle. The female figure descending the steps is dressed in her Edwardian finery. The trees indicate we are in Autumn with their brown tints."
+  },
+  {
+    "title": "The Hunt Preparing for the Off",
+    "image": null,
+    "slug": "the-hunt-preparing-for-the-off",
+    "location": null,
+    "subject": "Hunting Scene",
+    "medium": "Watercolour",
+    "date": null,
+    "signature": "Arthur Hammond",
+    "dimensions": "48 cm x 59 cm",
+    "blurb": "In this scene the hunt is ready for action. Huntsmen and hounds are actively moving towards the spectator with bystanders watching on. The lead huntsman has a whip in hand. The cottages and house along with the trees separate the foreground from the background. There is excitement in the air as the hounds prepare to chase their quarry. The unrest leads the ducks to make an exit up the bank."
+  },
+  {
+    "title": "The Gathering for the Hunt",
+    "image": null,
+    "slug": "the-gathering-for-the-hunt",
+    "location": null,
+    "subject": "Hunting Scene",
+    "medium": "Watercolour",
+    "date": null,
+    "signature": "Arthur Hammond",
+    "dimensions": "48 cm x 59 cm",
+    "blurb": "This scene has the hunt meeting outside a very impressive manor house. The architecture is finely depicted. The huntsmen and women are spread apart prior to meeting up ready for the off. The scene necessitates a full appreciation of foreshortening. The masonry pillar has been detailed with pen and ink to give definition and hatched to suggest shadow. The huntswoman on the right is deep in conversation with the two gentlemen. The hounds are clearly restless wanting to set off after their quarry. The artist has given thought to representing the architecture of the manor house in painted form without slavishly copying detail."
+  },
+  {
     "title": "The Cotswolds above Chipping Campden",
     "image": "https://webfuel.blob.core.windows.net/webfuel-filesystem/8551ca70-3fd8-b1c7-d133-08d69bd28840/Cotswolds.jpeg",
     "slug": "the-cotswolds-above-chipping-campden",
