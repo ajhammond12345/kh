@@ -7,7 +7,7 @@ useHead({
     {
       name: 'description',
       content:
-        'A public catalogue of every Knighton-Hammond painting the Trust has been able to find — searchable, with provenance, captions, and the stories behind them.',
+        'A public catalogue of the Knighton-Hammond paintings the Trust has found so far — searchable, with provenance, captions, and the stories behind them.',
     },
   ],
 })

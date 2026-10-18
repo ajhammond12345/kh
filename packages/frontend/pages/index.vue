@@ -7,7 +7,7 @@ useHead({
     {
       name: 'description',
       content:
-        'A public catalogue of every Knighton-Hammond painting the Trust has been able to find — searchable, with provenance, captions, and the stories behind them.',
+        'A public catalogue of the Knighton-Hammond paintings the Trust has found so far — searchable, with provenance, captions, and the stories behind them.',
     },
   ],
 })
@@ -264,7 +264,7 @@ const viewAllStyle = {
             maxWidth: '20ch',
           }"
         >
-          "I regard the paintings of Knighton-Hammond as the finest examples of English watercolours of his time."
+          "I regard the work of Knighton-Hammond as the finest examples of English painting of his time."
           <cite
             :style="{
               display: 'block',
