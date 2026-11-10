@@ -5,14 +5,16 @@ definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'Users — Knighton-Hammond Admin' })
 
 const { getFirestoreDb } = useFirebase()
-const { user } = useAuth()
+const { user, isOwner } = useAuth()
 
-type AdminRow = { email: string; addedBy?: string; addedAt?: Timestamp }
+type Role = 'owner' | 'admin'
+type AdminRow = { email: string; role?: Role; addedBy?: string; addedAt?: Timestamp }
 
 const admins = ref<AdminRow[]>([])
 const loading = ref(true)
 const error = ref('')
 const newEmail = ref('')
+const newRole = ref<Role>('admin')
 const adding = ref(false)
 
 onMounted(async () => {
@@ -48,12 +50,14 @@ async function addAdmin() {
   adding.value = true
   try {
     await setDoc(doc(getFirestoreDb(), 'admins', email), {
+      role: newRole.value,
       addedBy: user.value?.email || null,
       addedAt: serverTimestamp(),
     })
-    admins.value = [...admins.value, { email, addedBy: user.value?.email || undefined }]
+    admins.value = [...admins.value, { email, role: newRole.value, addedBy: user.value?.email || undefined }]
       .sort((a, b) => a.email.localeCompare(b.email))
     newEmail.value = ''
+    newRole.value = 'admin'
   } catch {
     error.value = 'The administrator could not be added. Please try again.'
   } finally {
@@ -82,7 +86,10 @@ async function removeAdmin(row: AdminRow) {
     <div class="kha-eyebrow">THE CATALOGUE ROOM</div>
     <h1 class="kha-title">Users</h1>
 
-    <div class="kha-card khu-add">
+    <p v-if="!isOwner" class="khu-note">
+      Only the site owner can add or remove administrators.
+    </p>
+    <div v-else class="kha-card khu-add">
       <div class="khu-add-field">
         <label class="kha-label" for="new-admin">Add an administrator</label>
         <input
@@ -94,7 +101,14 @@ async function removeAdmin(row: AdminRow) {
           @keydown.enter.prevent="addAdmin"
         />
       </div>
-      <button class="kha-btn" :disabled="adding" @click="addAdmin">
+      <div>
+        <label class="kha-label" for="new-admin-role">Role</label>
+        <select id="new-admin-role" v-model="newRole" class="kha-select khu-role-select">
+          <option value="admin">Administrator</option>
+          <option value="owner">Owner (can manage administrators)</option>
+        </select>
+      </div>
+      <button class="kha-btn khu-add-btn" :disabled="adding" @click="addAdmin">
         {{ adding ? 'Adding…' : 'Add' }}
       </button>
     </div>
@@ -106,9 +120,10 @@ async function removeAdmin(row: AdminRow) {
       <thead>
         <tr>
           <th>Email</th>
+          <th>Role</th>
           <th class="khu-col-wide">Added by</th>
           <th class="khu-col-wide">Added</th>
-          <th :style="{ textAlign: 'right' }">Actions</th>
+          <th v-if="isOwner" :style="{ textAlign: 'right' }">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -117,9 +132,10 @@ async function removeAdmin(row: AdminRow) {
             {{ a.email }}
             <span v-if="a.email === user?.email?.toLowerCase()" class="khu-you">you</span>
           </td>
+          <td>{{ a.role === 'owner' ? 'Owner' : 'Administrator' }}</td>
           <td class="khu-col-wide">{{ a.addedBy || '—' }}</td>
           <td class="khu-col-wide">{{ formatDate(a.addedAt) }}</td>
-          <td :style="{ textAlign: 'right' }">
+          <td v-if="isOwner" :style="{ textAlign: 'right' }">
             <button
               v-if="a.email !== user?.email?.toLowerCase()"
               class="kha-btn--danger khu-remove"
@@ -144,6 +160,22 @@ async function removeAdmin(row: AdminRow) {
 .khu-add-field {
   flex: 1;
   max-width: 380px;
+}
+.khu-role-select {
+  min-width: 200px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7180' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+.khu-add-btn {
+  min-height: 44px;
+}
+.khu-note {
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--ink-3);
+  margin: -12px 0 28px;
 }
 .khu-error {
   margin-bottom: 16px;

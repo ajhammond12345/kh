@@ -140,7 +140,7 @@ onBeforeUnmount(() => {
           textShadow: '0 1px 8px rgb(0 0 0 / 0.18)',
         }"
       >
-        Eighty years of sketchbooks, society portraits and paintings by
+        Eighty years of sketchbooks, portraits and paintings by
         Arthur Henry Knighton-Hammond — assembled as a single, searchable
         public catalogue.
       </p>

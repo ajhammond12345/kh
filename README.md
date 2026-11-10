@@ -9,14 +9,22 @@ fallback URL https://ajh-kh-gallery.web.app, Firebase project `ajh-kh-gallery`).
 - `packages/frontend` — Nuxt 3 SPA (`ssr: false`), deployed to Firebase Hosting
 - **Firestore** — artwork metadata. `catalog/artworks` is a single summary doc
   the public site reads (one read per visit); `artworks/{slug}` holds full
-  records; `admins/{email}` grants admin (doc ID = lowercased email;
-  `ajhammond123@gmail.com` + the `firebase_admins` terraform var are pre-seeded)
-- **Images** — pre-generated variants (`/images/{thumb|medium|large}/{slug}.{webp|jpg}`)
-  served as Hosting static files from the `kh-data` tree (outside the repo)
+  records; `admins/{email}` grants admin (doc ID = lowercased email, `role`
+  `owner` | `admin`; only owners can add/remove admins). The owner
+  (`owner_email`) and the `firebase_admins` terraform var are pre-seeded;
+  `submissions/{id}` holds visitor-sent works awaiting review
+- **Images** — the original catalogue's variants (`/images/{thumb|medium|large}/{slug}.{webp|jpg}`)
+  are Hosting static files from the `kh-data` tree (outside the repo). Works
+  added through the site (admin "Add an artwork" or an approved `/submit`
+  submission) are resized in the browser and uploaded to the public
+  `ajh-kh-gallery-uploads` bucket at `uploads/{id}/{size}/{imageName}.{ext}`;
+  their docs carry `imageBase`/`imageName`/`imagePaths`
 - **Auth** — Firebase Auth (Google sign-in + email link) guarding `/admin`
 - `packages/backend` — legacy Hono/SQLite server, no longer used by the site
-- `firestore.rules` — global read, admin-only write; `storage.rules` staged
-  for when Cloud Storage is enabled
+- `firestore.rules` — global read, admin-only write, owner-only admin
+  management, signed-in visitors may create pending submissions;
+  `storage.rules` — signed-in users may add (never replace) images under
+  `uploads/`, admins may delete
 
 ## Local dev
 
@@ -36,13 +44,24 @@ npm run dev -w packages/frontend    # :3100; reads live Firestore
 
 ## Data
 
-`scripts/seed-firestore.mjs` (one-shot, idempotent) builds Firestore from
+`scripts/seed-firestore.mjs` rebuilds every artwork doc from
 `packages/frontend/data/artworks-scraped.json`, enriching dominant colours
-from the legacy SQLite db / thumbnails:
+from the legacy SQLite db / thumbnails. It overwrites admin edits, so it
+refuses to run against anything but dev (`ajh-kh-gallery-dev`) or an emulator:
 
 ```bash
 GOOGLE_APPLICATION_CREDENTIALS=<sa-key> node scripts/seed-firestore.mjs
 ```
+
+To add specific works to prod, put the entries in `artworks-scraped.json`,
+the images in `kh-data/uploads`, deploy, then:
+
+```bash
+FIREBASE_PROJECT=ajh-kh-gallery node scripts/add-artworks.mjs <slug> [<slug>...]
+```
+
+It skips slugs that already exist, puts new works at the top of the library
+and rebuilds `catalog/artworks` from the artworks collection.
 
 ## Infrastructure
 
@@ -96,5 +115,6 @@ Auth authorized domains via terraform.
   terraform plan   # expect: no changes
   ```
 
-Still deferred: **runtime image uploads** (Cloud Storage for Firebase) —
-`storage.rules` is ready, the admin UI shows uploads as locked.
+Uploads use the `ajh-kh-gallery-uploads` bucket (terraform: bucket, public
+read, Firebase link, and the Firestore role the Storage rules need for their
+admin check). Dev has no bucket, so the upload UI is disabled there.

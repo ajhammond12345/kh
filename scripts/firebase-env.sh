@@ -22,6 +22,7 @@ for key, env in [
     ("projectId", "PROJECT_ID"),
     ("appId", "APP_ID"),
     ("messagingSenderId", "MESSAGING_SENDER_ID"),
+    ("uploadBucket", "UPLOAD_BUCKET"),
 ]:
     print("NUXT_PUBLIC_FIREBASE_" + env + "=" + c[key])
 '

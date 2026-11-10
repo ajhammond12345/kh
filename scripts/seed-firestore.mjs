@@ -1,21 +1,18 @@
 // One-shot Firestore seed: artworks-scraped.json (+ dominant colours from the
 // legacy SQLite db where slugs/titles match) -> artworks/{slug} docs + the
 // catalog/artworks summary doc the public site reads.
+// Overwrites every artworks/ doc, so it only runs against dev or an emulator —
+// prod holds admin edits and approved submissions it would clobber. To add
+// works to prod use scripts/add-artworks.mjs.
 // Usage: GOOGLE_APPLICATION_CREDENTIALS=<sa-key> node scripts/seed-firestore.mjs
-import { readFileSync, existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { initializeApp, applicationDefault } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import Database from 'better-sqlite3';
-import sharp from 'sharp';
+import { root, loadScraped, hasImage, toArtworkDoc, catalogItem } from './artwork-records.mjs';
 
-const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const IMAGES_DIR = process.env.IMAGES_DIR || path.join(path.dirname(root), 'kh-data', 'uploads');
-
-const artworks = JSON.parse(
-  readFileSync(path.join(root, 'packages/frontend/data/artworks-scraped.json'), 'utf8')
-);
+const artworks = loadScraped();
 
 const dbPath = path.join(root, 'packages/backend/data/kh.db');
 const bySlug = new Map();
@@ -29,68 +26,30 @@ if (existsSync(dbPath)) {
   db.close();
 }
 
-const decodeEntities = (s) =>
-  s
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;|&rsquo;/g, "'")
-    .replace(/<[^>]+>/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-
-const toDecade = (date) => {
-  if (!date) return null;
-  const d = date.trim();
-  if (/^\d{4}s$/.test(d)) return d;
-  const m = d.match(/\b(\d{4})\b/);
-  return m ? `${Math.floor(Number(m[1]) / 10) * 10}s` : null;
-};
+const SEEDABLE_PROJECTS = ['ajh-kh-gallery-dev'];
+const projectId = process.env.FIREBASE_PROJECT || 'ajh-kh-gallery-dev';
+if (!SEEDABLE_PROJECTS.includes(projectId) && !process.env.FIRESTORE_EMULATOR_HOST) {
+  console.error(`Refusing to seed ${projectId}: seeding is only allowed on ${SEEDABLE_PROJECTS.join(', ')} or the emulator.`);
+  process.exit(1);
+}
 
 initializeApp({
   credential: applicationDefault(),
-  projectId: process.env.FIREBASE_PROJECT || 'ajh-kh-gallery',
+  projectId,
 });
 const firestore = getFirestore();
-
-const hex = (v) => v.toString(16).padStart(2, '0');
-const dominantColor = async (slug) => {
-  const { dominant } = await sharp(path.join(IMAGES_DIR, 'thumb', `${slug}.jpg`)).stats();
-  return `#${hex(dominant.r)}${hex(dominant.g)}${hex(dominant.b)}`;
-};
 
 let missingImages = 0;
 const docs = await Promise.all(artworks.map(async (a, i) => {
   const legacy = bySlug.get(a.slug) || byTitle.get(a.title.trim().toLowerCase());
-  const hasImage = existsSync(path.join(IMAGES_DIR, 'thumb', `${a.slug}.jpg`));
-  if (!hasImage) {
+  if (!hasImage(a.slug)) {
     missingImages++;
     console.warn(`missing image: ${a.slug}`);
   }
-  const summary = {
-    slug: a.slug,
-    title: a.title.trim(),
-    date: a.date?.trim() || null,
-    decade: toDecade(a.date),
-    medium: a.medium?.trim() || null,
-    subject: a.subject?.trim() || null,
-    location: a.location?.trim() || null,
-    signature: a.signature?.trim() || null,
-    dimensions: a.dimensions?.trim() || null,
-    dominantColor: legacy?.dominant_color || (hasImage ? await dominantColor(a.slug) : '#8a8174'),
-  };
-  return {
-    ...summary,
-    description: a.blurb ? decodeEntities(a.blurb) : null,
-    imageBase: '/images',
-    published: true,
-    displayOrder: i,
-  };
+  return toArtworkDoc(a, { displayOrder: i, legacyColor: legacy?.dominant_color });
 }));
 
-const items = docs.map(({ description, imageBase, published, displayOrder, ...summary }) => summary);
+const items = docs.map(catalogItem);
 
 let batch = firestore.batch();
 let n = 0;

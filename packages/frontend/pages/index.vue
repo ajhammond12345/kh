@@ -2,12 +2,12 @@
 import type { GalleryArtwork } from '~/composables/useArtworks'
 
 useHead({
-  title: 'Knighton Hammond Charitable Trust — The artwork library',
+  title: 'Knighton-Hammond Charitable Trust — The artwork library',
   meta: [
     {
       name: 'description',
       content:
-        'A public catalogue of every Knighton-Hammond painting the Trust has been able to find — searchable, with provenance, captions, and the stories behind them.',
+        'A public catalogue of the Knighton-Hammond paintings the Trust has found so far — searchable, with provenance, captions, and the stories behind them.',
     },
   ],
 })
@@ -89,7 +89,7 @@ const viewAllStyle = {
           v-for="(s, i) in [
             { n: all.length, k: 'works catalogued' },
             { n: '80', k: 'years of practice' },
-            { n: '7', k: 'countries painted' },
+            { n: '6', k: 'countries painted' },
             { n: '5', k: 'media represented' },
           ]"
           :key="i"
@@ -264,7 +264,7 @@ const viewAllStyle = {
             maxWidth: '20ch',
           }"
         >
-          "I regard the paintings of Knighton-Hammond as the finest examples of English watercolours of his time."
+          "I regard the work of Knighton-Hammond as the finest examples of English painting of his time."
           <cite
             :style="{
               display: 'block',
@@ -295,7 +295,7 @@ const viewAllStyle = {
         <NuxtLink
           v-for="j in journal.slice(0, 3)"
           :key="j.id"
-          to="/blog"
+          :to="j.path || '/blog'"
           :style="{
             background: 'transparent',
             border: 0,

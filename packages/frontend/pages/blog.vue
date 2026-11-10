@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: 'Journal — Knighton Hammond Charitable Trust' })
+useHead({ title: 'Journal — Knighton-Hammond Charitable Trust' })
 
 const { journal } = useArtworks()
 </script>
@@ -75,7 +75,8 @@ const { journal } = useArtworks()
             margin: '0 0 12px',
           }"
         >
-          {{ j.title }}
+          <NuxtLink v-if="j.path" :to="j.path" :style="{ color: 'inherit', textDecoration: 'none' }">{{ j.title }}</NuxtLink>
+          <template v-else>{{ j.title }}</template>
         </h2>
         <p
           :style="{
@@ -88,6 +89,7 @@ const { journal } = useArtworks()
           }"
         >
           {{ j.dek }}
+          <NuxtLink v-if="j.path" :to="j.path" :style="{ color: 'var(--sienna)', whiteSpace: 'nowrap' }">Read more →</NuxtLink>
         </p>
         <div
           :style="{

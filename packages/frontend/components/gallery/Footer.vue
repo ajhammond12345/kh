@@ -27,7 +27,7 @@ const linkStyle = {
     >
       <div>
         <div :style="{ fontFamily: 'var(--font-display)', fontSize: '26px', color: 'var(--ink)', fontWeight: 500, letterSpacing: '-0.005em' }">
-          Knighton Hammond
+          Knighton-Hammond
         </div>
         <div :style="{ fontFamily: 'var(--font-ui)', fontSize: '10px', letterSpacing: '0.20em', color: 'var(--ink-3)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }">
           <span :style="{ width: '18px', height: '1px', background: 'var(--sienna)' }" />
@@ -85,9 +85,6 @@ const linkStyle = {
             <NuxtLink to="/library" :style="linkStyle">Browse the library</NuxtLink>
           </li>
           <li :style="{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--ink)', padding: '5px 0' }">
-            <NuxtLink to="/blog" :style="linkStyle">The Trust journal</NuxtLink>
-          </li>
-          <li :style="{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--ink)', padding: '5px 0' }">
             <NuxtLink to="/social" :style="linkStyle">Social media</NuxtLink>
           </li>
           <li :style="{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--ink)', padding: '5px 0' }">
@@ -112,7 +109,7 @@ const linkStyle = {
         letterSpacing: '0.02em',
       }"
     >
-      <span>© {{ new Date().getFullYear() }} Knighton Hammond Charitable Trust</span>
+      <span>© {{ new Date().getFullYear() }} Knighton-Hammond Charitable Trust</span>
       <span :style="{ display: 'flex', gap: '8px' }">
         <NuxtLink to="/privacy" :style="linkStyle">Privacy</NuxtLink>
       </span>

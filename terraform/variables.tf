@@ -49,3 +49,9 @@ variable "google_oauth_client_secret" {
   default   = ""
   sensitive = true
 }
+
+variable "owner_email" {
+  description = "Gallery owner: an admin who can also add and remove other admins. Lowercase."
+  type        = string
+  default     = "ajhammond123@gmail.com"
+}
