@@ -10,6 +10,7 @@ output "web_app_config" {
     projectId         = var.project_id
     appId             = google_firebase_web_app.gallery.app_id
     messagingSenderId = data.google_firebase_web_app_config.gallery.messaging_sender_id
+    uploadBucket      = google_storage_bucket.uploads.name
   }
 }
 
@@ -25,6 +26,7 @@ output "web_app_config_dev" {
     projectId         = var.dev_project_id
     appId             = google_firebase_web_app.gallery_dev.app_id
     messagingSenderId = data.google_firebase_web_app_config.gallery_dev.messaging_sender_id
+    uploadBucket      = ""
   }
 }
 

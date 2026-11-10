@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { collection, deleteDoc, doc, getDocs, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore'
-import type { ArtworkDoc, CatalogItem } from '~/composables/useArtworks'
+import { doc, serverTimestamp, updateDoc } from 'firebase/firestore'
+import type { ArtworkDoc } from '~/composables/useArtworks'
+import { cleanFields, emptyArtworkFields, fieldsFrom, type ArtworkFields } from '~/composables/useArtworkAdmin'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'Artworks — Knighton-Hammond Admin' })
 
 const { getFirestoreDb } = useFirebase()
 const { imageUrl } = useGallery()
+const { uploadsEnabled, loadArtworks, rebuildCatalog, addArtwork, deleteArtwork } = useArtworkAdmin()
 
 const rows = ref<ArtworkDoc[]>([])
 const loading = ref(true)
@@ -15,10 +17,7 @@ const search = ref('')
 
 onMounted(async () => {
   try {
-    const snap = await getDocs(collection(getFirestoreDb(), 'artworks'))
-    rows.value = snap.docs
-      .map((d) => ({ ...(d.data() as ArtworkDoc), slug: d.id }))
-      .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
+    rows.value = await loadArtworks()
   } catch {
     loadError.value = 'The artworks could not be loaded. Please try again.'
   } finally {
@@ -32,96 +31,38 @@ const filtered = computed(() => {
   return rows.value.filter((r) => r.title.toLowerCase().includes(needle))
 })
 
-function toCatalogItem(r: ArtworkDoc): CatalogItem {
-  return {
-    slug: r.slug,
-    title: r.title,
-    date: r.date ?? null,
-    decade: r.decade ?? null,
-    medium: r.medium ?? null,
-    subject: r.subject ?? null,
-    location: r.location ?? null,
-    signature: r.signature ?? null,
-    dimensions: r.dimensions ?? null,
-    dominantColor: r.dominantColor ?? null,
-  }
-}
-
-// The artworks collection is the source of truth; rebuilding the catalogue
-// from it keeps the doc consistent even if a previous sync was interrupted.
-async function syncCatalog() {
-  const items = rows.value
-    .filter((r) => r.published)
-    .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
-    .map(toCatalogItem)
-  await setDoc(doc(getFirestoreDb(), 'catalog', 'artworks'), {
-    items,
-    count: items.length,
-    updatedAt: serverTimestamp(),
-  })
-}
+const thumbUrl = (r: ArtworkDoc) => imageUrl(r.imageName || r.slug, 'thumb', 'jpg', r.imageBase)
 
 const editing = ref<ArtworkDoc | null>(null)
 const saving = ref(false)
 const saveError = ref('')
-const form = reactive({
-  title: '',
-  date: '',
-  decade: '',
-  medium: '',
-  subject: '',
-  location: '',
-  signature: '',
-  dimensions: '',
-  description: '',
-  published: false,
-})
+const form = ref<ArtworkFields>(emptyArtworkFields())
+const published = ref(false)
 
 function openEdit(row: ArtworkDoc) {
   editing.value = row
   saveError.value = ''
-  Object.assign(form, {
-    title: row.title || '',
-    date: row.date || '',
-    decade: row.decade || '',
-    medium: row.medium || '',
-    subject: row.subject || '',
-    location: row.location || '',
-    signature: row.signature || '',
-    dimensions: row.dimensions || '',
-    description: row.description || '',
-    published: !!row.published,
-  })
+  form.value = fieldsFrom(row)
+  published.value = !!row.published
 }
 
 async function saveEdit() {
   if (!editing.value) return
-  const title = form.title.trim()
+  const title = form.value.title.trim()
   if (!title) {
     saveError.value = 'A title is required.'
     return
   }
   saving.value = true
   saveError.value = ''
-  const patch = {
-    title,
-    date: form.date.trim() || null,
-    decade: form.decade.trim() || null,
-    medium: form.medium.trim() || null,
-    subject: form.subject.trim() || null,
-    location: form.location.trim() || null,
-    signature: form.signature.trim() || null,
-    dimensions: form.dimensions.trim() || null,
-    description: form.description.trim() || null,
-    published: form.published,
-  }
+  const patch = { ...cleanFields(form.value), title, published: published.value }
   try {
     await updateDoc(doc(getFirestoreDb(), 'artworks', editing.value.slug), {
       ...patch,
       updatedAt: serverTimestamp(),
     })
     Object.assign(editing.value, patch)
-    await syncCatalog()
+    await rebuildCatalog(rows.value)
     editing.value = null
   } catch {
     saveError.value = 'The changes could not be saved. Please try again.'
@@ -130,12 +71,47 @@ async function saveEdit() {
   }
 }
 
+const adding = ref(false)
+const addForm = ref<ArtworkFields>(emptyArtworkFields())
+const addFile = ref<File | null>(null)
+const addError = ref('')
+const addSaving = ref(false)
+
+function openAdd() {
+  addForm.value = emptyArtworkFields()
+  addFile.value = null
+  addError.value = ''
+  adding.value = true
+}
+
+async function saveAdd() {
+  if (!addForm.value.title.trim()) {
+    addError.value = 'A title is required.'
+    return
+  }
+  if (!addFile.value) {
+    addError.value = 'Please choose a photo of the work.'
+    return
+  }
+  addSaving.value = true
+  addError.value = ''
+  try {
+    await addArtwork(addForm.value, addFile.value)
+    rows.value = await loadArtworks()
+    adding.value = false
+  } catch (err) {
+    addError.value = (err as Error)?.message || 'The artwork could not be added. Please try again.'
+  } finally {
+    addSaving.value = false
+  }
+}
+
 async function removeArtwork(row: ArtworkDoc) {
   if (!confirm(`Delete “${row.title}”? This cannot be undone.`)) return
   try {
-    await deleteDoc(doc(getFirestoreDb(), 'artworks', row.slug))
-    rows.value = rows.value.filter((r) => r.slug !== row.slug)
-    await syncCatalog()
+    const remaining = rows.value.filter((r) => r.slug !== row.slug)
+    await deleteArtwork(row, remaining)
+    rows.value = remaining
   } catch {
     loadError.value = 'The artwork could not be deleted. Please try again.'
   }
@@ -151,10 +127,12 @@ async function removeArtwork(row: ArtworkDoc) {
       <div>
         <div class="khw-upload-title">Add an artwork</div>
         <p class="khw-upload-body">
-          Image uploads unlock once Cloud Storage is enabled (billing).
+          {{ uploadsEnabled
+            ? 'Upload a photo and the details. It goes straight into the public library.'
+            : 'Image uploads are only available on the live site.' }}
         </p>
       </div>
-      <button class="kha-btn" disabled>Upload an image</button>
+      <button class="kha-btn" :disabled="!uploadsEnabled" @click="openAdd">Add an artwork</button>
     </div>
 
     <input
@@ -162,6 +140,7 @@ async function removeArtwork(row: ArtworkDoc) {
       type="text"
       class="kha-input khw-search"
       placeholder="Search by title…"
+      aria-label="Search by title"
     />
 
     <p v-if="loadError" class="kha-error">{{ loadError }}</p>
@@ -184,12 +163,7 @@ async function removeArtwork(row: ArtworkDoc) {
       <tbody>
         <tr v-for="r in filtered" :key="r.slug">
           <td>
-            <img
-              :src="imageUrl(r.slug, 'thumb', 'jpg', r.imageBase)"
-              :alt="r.title"
-              class="khw-thumb"
-              loading="lazy"
-            />
+            <img :src="thumbUrl(r)" :alt="r.title" class="khw-thumb" loading="lazy" />
           </td>
           <td>
             <span class="khw-row-title">{{ r.title }}</span>
@@ -208,67 +182,36 @@ async function removeArtwork(row: ArtworkDoc) {
       </tbody>
     </table>
 
-    <Teleport to="body">
-      <div v-if="editing" class="khw-overlay" @click.self="editing = null">
-        <div class="khw-dialog">
-          <div class="khw-dialog-head">
-            <div class="khw-dialog-title">{{ editing.title }}</div>
-            <button class="khw-dialog-close" aria-label="Close" @click="editing = null">&times;</button>
-          </div>
-          <form class="khw-form" @submit.prevent="saveEdit">
-            <div class="khw-form-grid">
-              <div class="khw-form-span">
-                <label class="kha-label" for="f-title">Title</label>
-                <input id="f-title" v-model="form.title" type="text" class="kha-input" />
-              </div>
-              <div>
-                <label class="kha-label" for="f-date">Date</label>
-                <input id="f-date" v-model="form.date" type="text" class="kha-input" placeholder="e.g. 1926" />
-              </div>
-              <div>
-                <label class="kha-label" for="f-decade">Decade</label>
-                <input id="f-decade" v-model="form.decade" type="text" class="kha-input" placeholder="e.g. 1920s" />
-              </div>
-              <div>
-                <label class="kha-label" for="f-medium">Medium</label>
-                <input id="f-medium" v-model="form.medium" type="text" class="kha-input" />
-              </div>
-              <div>
-                <label class="kha-label" for="f-subject">Subject</label>
-                <input id="f-subject" v-model="form.subject" type="text" class="kha-input" />
-              </div>
-              <div>
-                <label class="kha-label" for="f-location">Location</label>
-                <input id="f-location" v-model="form.location" type="text" class="kha-input" />
-              </div>
-              <div>
-                <label class="kha-label" for="f-signature">Signature</label>
-                <input id="f-signature" v-model="form.signature" type="text" class="kha-input" />
-              </div>
-              <div>
-                <label class="kha-label" for="f-dimensions">Dimensions</label>
-                <input id="f-dimensions" v-model="form.dimensions" type="text" class="kha-input" placeholder="e.g. 35 cm x 50 cm" />
-              </div>
-              <div class="khw-form-span">
-                <label class="kha-label" for="f-description">Description</label>
-                <textarea id="f-description" v-model="form.description" rows="5" class="kha-textarea" />
-              </div>
-            </div>
-            <label class="khw-publish">
-              <input v-model="form.published" type="checkbox" />
-              Published — visible in the public library
-            </label>
-            <p v-if="saveError" class="kha-error">{{ saveError }}</p>
-            <div class="khw-dialog-actions">
-              <button type="button" class="kha-btn kha-btn--ghost" @click="editing = null">Cancel</button>
-              <button type="submit" class="kha-btn" :disabled="saving">
-                {{ saving ? 'Saving…' : 'Save changes' }}
-              </button>
-            </div>
-          </form>
+    <AdminDialog v-if="editing" :title="editing.title" @close="editing = null">
+      <form @submit.prevent="saveEdit">
+        <AdminArtworkFieldsForm v-model="form" id-prefix="edit" />
+        <label class="khw-publish">
+          <input v-model="published" type="checkbox" />
+          Published — visible in the public library
+        </label>
+        <p v-if="saveError" class="kha-error">{{ saveError }}</p>
+        <div class="khw-dialog-actions">
+          <button type="button" class="kha-btn kha-btn--ghost" @click="editing = null">Cancel</button>
+          <button type="submit" class="kha-btn" :disabled="saving">
+            {{ saving ? 'Saving…' : 'Save changes' }}
+          </button>
         </div>
-      </div>
-    </Teleport>
+      </form>
+    </AdminDialog>
+
+    <AdminDialog v-if="adding" title="Add an artwork" @close="adding = false">
+      <form @submit.prevent="saveAdd">
+        <AdminImagePicker v-model="addFile" id="add-image" class="khw-picker" />
+        <AdminArtworkFieldsForm v-model="addForm" id-prefix="add" />
+        <p v-if="addError" class="kha-error">{{ addError }}</p>
+        <div class="khw-dialog-actions">
+          <button type="button" class="kha-btn kha-btn--ghost" @click="adding = false">Cancel</button>
+          <button type="submit" class="kha-btn" :disabled="addSaving">
+            {{ addSaving ? 'Uploading…' : 'Add and publish' }}
+          </button>
+        </div>
+      </form>
+    </AdminDialog>
   </div>
 </template>
 
@@ -326,57 +269,6 @@ async function removeArtwork(row: ArtworkDoc) {
   cursor: pointer;
   font-family: var(--font-ui);
 }
-.khw-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  background: rgb(22 26 34 / 0.58);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 8vh 20px 40px;
-  overflow-y: auto;
-}
-.khw-dialog {
-  width: min(640px, 100%);
-  background: var(--paper-2);
-  box-shadow: var(--shadow-3);
-}
-.khw-dialog-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 18px 24px;
-  border-bottom: 1px solid var(--hairline);
-}
-.khw-dialog-title {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 22px;
-  color: var(--ink);
-}
-.khw-dialog-close {
-  background: transparent;
-  border: 0;
-  font-size: 26px;
-  line-height: 1;
-  color: var(--ink-3);
-  cursor: pointer;
-}
-.khw-form {
-  padding: 24px;
-}
-.khw-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-.khw-form-span {
-  grid-column: 1 / -1;
-}
 .khw-publish {
   display: flex;
   align-items: center;
@@ -390,6 +282,9 @@ async function removeArtwork(row: ArtworkDoc) {
 .khw-publish input {
   accent-color: var(--sienna);
 }
+.khw-picker {
+  margin-bottom: 20px;
+}
 .khw-dialog-actions {
   display: flex;
   justify-content: flex-end;
@@ -400,9 +295,6 @@ async function removeArtwork(row: ArtworkDoc) {
 @media (max-width: 640px) {
   .khw-col-wide {
     display: none;
-  }
-  .khw-form-grid {
-    grid-template-columns: 1fr;
   }
   .khw-upload {
     flex-direction: column;

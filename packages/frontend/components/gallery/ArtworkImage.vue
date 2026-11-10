@@ -56,9 +56,9 @@ const wrapperStyle = computed(() => {
 <template>
   <div :style="wrapperStyle">
     <picture v-if="!failed" :style="pictureStyle">
-      <source type="image/webp" :srcset="imageUrl(work.id, size, 'webp')" />
+      <source type="image/webp" :srcset="imageUrl(work.imageName || work.id, size, 'webp', work.imageBase)" />
       <img
-        :src="imageUrl(work.id, size, 'jpg')"
+        :src="imageUrl(work.imageName || work.id, size, 'jpg', work.imageBase)"
         :alt="work.title"
         :loading="lazy ? 'lazy' : undefined"
         :style="innerStyle"

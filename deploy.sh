@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# Build the frontend and deploy hosting + firestore rules.
+# Build the frontend and deploy hosting + firestore rules (+ storage rules on prod).
 # Usage: ./deploy.sh [prod|dev]   (default prod)
 # Gallery images live OUTSIDE the repo (kh-data) and are merged into the
 # hosting payload here; Firebase Hosting dedupes unchanged files across
@@ -43,4 +43,7 @@ for size in thumb medium large; do
   cp -Rc "$KH_DATA/$size" "deploy/images/$size"
 done
 
-firebase deploy --only hosting,firestore --project "$ENV" --non-interactive
+# Dev has no billing, so no Cloud Storage bucket and no storage rules.
+TARGETS=hosting,firestore
+[ "$ENV" = prod ] && TARGETS="$TARGETS,storage"
+firebase deploy --only "$TARGETS" --project "$ENV" --non-interactive

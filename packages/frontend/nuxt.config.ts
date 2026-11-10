@@ -31,6 +31,7 @@ export default defineNuxtConfig({
     '~/assets/css/kh-tokens.css',
     '~/assets/css/global.css',
     '~/assets/css/kh-mobile.css',
+    '~/assets/css/kh-admin.css',
   ],
 
   runtimeConfig: {
@@ -44,6 +45,7 @@ export default defineNuxtConfig({
         projectId: '',
         appId: '',
         messagingSenderId: '',
+        uploadBucket: '',
       },
       imageBase: '/images',
     },

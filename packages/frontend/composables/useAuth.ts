@@ -29,16 +29,18 @@ let readyPromise: Promise<void> | null = null
 export function useAuth() {
   const { getFirebaseAuth, getFirestoreDb } = useFirebase()
   const user = useState<User | null>('kh-auth-user', () => null)
-  const isAdmin = useState<boolean>('kh-auth-is-admin', () => false)
+  const role = useState<'owner' | 'admin' | null>('kh-auth-role', () => null)
+  const isAdmin = computed(() => role.value !== null)
+  const isOwner = computed(() => role.value === 'owner')
 
-  async function checkAdmin(email: string | null | undefined): Promise<boolean> {
-    if (!email) return false
+  async function loadRole(email: string | null | undefined) {
+    role.value = null
+    if (!email) return
     try {
       const snap = await getDoc(doc(getFirestoreDb(), 'admins', email.toLowerCase()))
-      return snap.exists()
+      if (snap.exists()) role.value = snap.data().role === 'owner' ? 'owner' : 'admin'
     } catch {
       // Non-admins get permission-denied reading the admins collection
-      return false
     }
   }
 
@@ -48,7 +50,7 @@ export function useAuth() {
       readyPromise = new Promise((resolve) => {
         onAuthStateChanged(getFirebaseAuth(), async (u) => {
           user.value = u
-          isAdmin.value = await checkAdmin(u?.email)
+          await loadRole(u?.email)
           resolve()
         })
       })
@@ -62,7 +64,7 @@ export function useAuth() {
     try {
       const cred = await signInWithPopup(getFirebaseAuth(), new GoogleAuthProvider())
       user.value = cred.user
-      isAdmin.value = await checkAdmin(cred.user.email)
+      await loadRole(cred.user.email)
     } catch (err) {
       if ((err as { code?: string })?.code === 'auth/operation-not-allowed') {
         throw new Error("Google sign-in isn't enabled yet — please use an email link instead.")
@@ -71,10 +73,10 @@ export function useAuth() {
     }
   }
 
-  async function sendLoginLink(email: string) {
+  async function sendLoginLink(email: string, returnPath = '/admin/login') {
     try {
       await sendSignInLinkToEmail(getFirebaseAuth(), email, {
-        url: `${location.origin}/admin/login`,
+        url: `${location.origin}${returnPath}`,
         handleCodeInApp: true,
       })
     } catch (err) {
@@ -99,19 +101,20 @@ export function useAuth() {
     }
     localStorage.removeItem(LOGIN_EMAIL_KEY)
     user.value = cred.user
-    isAdmin.value = await checkAdmin(cred.user.email)
+    await loadRole(cred.user.email)
     return true
   }
 
   async function signOutUser() {
     await signOut(getFirebaseAuth())
     user.value = null
-    isAdmin.value = false
+    role.value = null
   }
 
   return {
     user,
     isAdmin,
+    isOwner,
     authReady,
     signInWithGoogle,
     sendLoginLink,

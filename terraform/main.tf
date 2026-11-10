@@ -51,6 +51,7 @@ resource "google_project_service" "services" {
     "firebasestorage.googleapis.com",
     "serviceusage.googleapis.com",
     "cloudresourcemanager.googleapis.com",
+    "storage.googleapis.com",
   ])
 
   project = google_project.kh_gallery.project_id
@@ -152,15 +153,57 @@ resource "google_identity_platform_default_supported_idp_config" "google" {
   depends_on = [google_identity_platform_config.auth]
 }
 
-# Pre-seeded admin. The firestore.rules isAdmin() check looks this document up
-# by lowercased email, so the admin can sign in with Google or an email link
-# before any admin has ever written to the admins collection.
+# Pre-seeded owner. firestore.rules looks this document up by lowercased email
+# (isAdmin = doc exists, isOwner = role "owner"); only owners can add or remove
+# other admins, so the first owner has to come from here.
 resource "google_firestore_document" "seed_admin" {
   project     = google_project.kh_gallery.project_id
   database    = google_firestore_database.default.name
   collection  = "admins"
-  document_id = "ajhammond123@gmail.com"
-  fields      = jsonencode({ addedBy = { stringValue = "terraform" } })
+  document_id = var.owner_email
+  fields = jsonencode({
+    addedBy = { stringValue = "terraform" }
+    role    = { stringValue = "owner" }
+  })
+}
+
+# Artwork image uploads (admin adds + public submissions). Objects are public:
+# the site builds image URLs as https://storage.googleapis.com/<bucket>/uploads/<id>/<size>/<slug>.<ext>,
+# same shape as the static /images tree, so pages need no Firebase SDK call to
+# render them. Writes are gated by storage.rules via the Firebase link below.
+resource "google_storage_bucket" "uploads" {
+  project  = google_project.kh_gallery.project_id
+  name     = "${var.project_id}-uploads"
+  location = "US-EAST1"
+
+  uniform_bucket_level_access = true
+  public_access_prevention    = "inherited"
+  force_destroy               = false
+
+  depends_on = [google_project_service.services]
+}
+
+resource "google_storage_bucket_iam_member" "uploads_public_read" {
+  bucket = google_storage_bucket.uploads.name
+  role   = "roles/storage.objectViewer"
+  member = "allUsers"
+}
+
+# storage.rules checks admins/ in Firestore; cross-service rules run as the
+# Storage service agent, which needs this role (the CLI only grants it when
+# deploying interactively).
+resource "google_project_iam_member" "storage_rules_firestore" {
+  project = google_project.kh_gallery.project_id
+  role    = "roles/firebaserules.firestoreServiceAgent"
+  member  = "serviceAccount:service-${google_project.kh_gallery.number}@gcp-sa-firebasestorage.iam.gserviceaccount.com"
+}
+
+resource "google_firebase_storage_bucket" "uploads" {
+  provider  = google-beta
+  project   = google_project.kh_gallery.project_id
+  bucket_id = google_storage_bucket.uploads.name
+
+  depends_on = [google_firebase_project.default]
 }
 
 # --- dev environment (mirrors prod; Auth needs the same one-time console
@@ -232,8 +275,11 @@ resource "google_firestore_document" "seed_admin_dev" {
   project     = google_project.kh_gallery_dev.project_id
   database    = google_firestore_database.dev.name
   collection  = "admins"
-  document_id = "ajhammond123@gmail.com"
-  fields      = jsonencode({ addedBy = { stringValue = "terraform" } })
+  document_id = var.owner_email
+  fields = jsonencode({
+    addedBy = { stringValue = "terraform" }
+    role    = { stringValue = "owner" }
+  })
 }
 
 # --- custom domain (prod only) ---
@@ -278,5 +324,8 @@ resource "google_firestore_document" "admins" {
   database    = google_firestore_database.default.name
   collection  = "admins"
   document_id = each.value
-  fields      = jsonencode({ addedBy = { stringValue = "terraform" } })
+  fields = jsonencode({
+    addedBy = { stringValue = "terraform" }
+    role    = { stringValue = "admin" }
+  })
 }

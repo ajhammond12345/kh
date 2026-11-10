@@ -5,23 +5,27 @@ definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'Admin — Knighton-Hammond' })
 
 const { getFirestoreDb } = useFirebase()
+const { countPendingSubmissions } = useArtworkAdmin()
 
-const stats = ref<{ artworks: number | null; published: number | null; admins: number | null }>({
+const stats = ref<{ artworks: number | null; published: number | null; pending: number | null; admins: number | null }>({
   artworks: null,
   published: null,
+  pending: null,
   admins: null,
 })
 
 onMounted(async () => {
   const db = getFirestoreDb()
-  const [artworks, catalogSnap, admins] = await Promise.all([
+  const [artworks, catalogSnap, pending, admins] = await Promise.all([
     getCountFromServer(collection(db, 'artworks')),
     getDoc(doc(db, 'catalog', 'artworks')),
+    countPendingSubmissions(),
     getCountFromServer(collection(db, 'admins')),
   ])
   stats.value = {
     artworks: artworks.data().count,
     published: catalogSnap.exists() ? (catalogSnap.data().count as number) : 0,
+    pending,
     admins: admins.data().count,
   }
 })
@@ -33,9 +37,14 @@ const cards = [
     body: 'Edit catalogue entries, publish or withdraw works, and keep the public library in order.',
   },
   {
+    to: '/admin/submissions',
+    title: 'Submissions',
+    body: 'Review works sent in by visitors. Approve to publish them, or reject.',
+  },
+  {
     to: '/admin/users',
     title: 'Users',
-    body: 'Manage who may administer the catalogue.',
+    body: 'See who can administer the catalogue. The owner can add and remove people.',
   },
 ]
 </script>
@@ -53,6 +62,10 @@ const cards = [
       <div class="khd-stat">
         <div class="khd-stat-n">{{ stats.published ?? '—' }}</div>
         <div class="khd-stat-k">published</div>
+      </div>
+      <div class="khd-stat">
+        <div class="khd-stat-n">{{ stats.pending ?? '—' }}</div>
+        <div class="khd-stat-k">to review</div>
       </div>
       <div class="khd-stat">
         <div class="khd-stat-n">{{ stats.admins ?? '—' }}</div>
@@ -73,7 +86,7 @@ const cards = [
 <style scoped>
 .khd-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 24px;
   margin-bottom: 48px;
 }

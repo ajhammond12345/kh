@@ -5,13 +5,13 @@ export function useGallery() {
   const config = useRuntimeConfig()
 
   function imageUrl(
-    slug: string | null,
+    name: string | null,
     size: ImageSize = 'medium',
     format: ImageFormat = 'jpg',
     base?: string | null,
   ): string {
-    if (!slug) return ''
-    return `${base || config.public.imageBase}/${size}/${slug}.${format}`
+    if (!name) return ''
+    return `${base || config.public.imageBase}/${size}/${name}.${format}`
   }
 
   return { imageUrl }

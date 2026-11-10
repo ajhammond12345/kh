@@ -10,6 +10,8 @@ export type GalleryArtwork = {
   location: string
   subject: string
   image: string
+  imageBase: string | null
+  imageName: string | null
   signature: string
   dominantColor: string | null
   tags: string[]
@@ -37,11 +39,15 @@ export type CatalogItem = {
   signature: string | null
   dimensions: string | null
   dominantColor: string | null
+  // Unset for the original catalogue (static /images/{size}/{slug}.{ext});
+  // uploads live at {imageBase}/{size}/{imageName}.{ext} in Cloud Storage.
+  imageBase?: string | null
+  imageName?: string | null
 }
 
 export type ArtworkDoc = CatalogItem & {
   description: string | null
-  imageBase: string | null
+  imagePaths?: string[]
   published: boolean
   displayOrder: number
 }
@@ -59,7 +65,7 @@ export const useArtworks = () => {
   const { imageUrl } = useGallery()
   const catalog = useState<GalleryArtwork[]>('kh-catalog', () => [])
 
-  function fromCatalogItem(item: CatalogItem, imageBase?: string | null): GalleryArtwork {
+  function fromCatalogItem(item: CatalogItem): GalleryArtwork {
     return {
       id: item.slug,
       title: item.title,
@@ -69,7 +75,9 @@ export const useArtworks = () => {
       dim: item.dimensions || '',
       location: item.location || '',
       subject: item.subject || '',
-      image: imageUrl(item.slug, 'large', 'jpg', imageBase),
+      image: imageUrl(item.imageName || item.slug, 'large', 'jpg', item.imageBase),
+      imageBase: item.imageBase || null,
+      imageName: item.imageName || null,
       signature: item.signature || '',
       dominantColor: item.dominantColor || null,
       tags: [item.subject, item.medium].filter(Boolean) as string[],
@@ -108,7 +116,7 @@ export const useArtworks = () => {
       if (!snap.exists()) return summary
       const d = snap.data() as ArtworkDoc
       return {
-        ...fromCatalogItem({ ...d, slug }, d.imageBase),
+        ...fromCatalogItem({ ...d, slug }),
         status: d.published ? 'published' : 'draft',
         blurb: d.description || '',
       }

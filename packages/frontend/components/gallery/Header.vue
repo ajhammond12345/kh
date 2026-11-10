@@ -162,7 +162,7 @@ const searchIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" 
           <span v-if="isActive(item)" class="kh-header__nav-active" />
         </NuxtLink>
         <NuxtLink
-          to="/admin"
+          to="/submit"
           class="kh-header__nav-cta"
           :class="{ 'kh-header__nav-cta--trans': trans }"
         >
@@ -230,7 +230,7 @@ const searchIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" 
               >
                 {{ item.label }}
               </NuxtLink>
-              <NuxtLink to="/admin" class="kh-drawer__nav-cta" @click="drawerOpen = false">
+              <NuxtLink to="/submit" class="kh-drawer__nav-cta" @click="drawerOpen = false">
                 Add an artwork
               </NuxtLink>
             </nav>
