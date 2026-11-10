@@ -3,5 +3,13 @@
     "default": "ajh-kh-gallery",
     "prod": "ajh-kh-gallery",
     "dev": "ajh-kh-gallery-dev"
+  },
+  "targets": {
+    "ajh-kh-gallery": {
+      "storage": { "uploads": ["ajh-kh-gallery-uploads"] }
+    },
+    "ajh-kh-gallery-dev": {
+      "storage": { "uploads": ["ajh-kh-gallery-dev-uploads"] }
+    }
   }
 }

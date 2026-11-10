@@ -8,12 +8,6 @@ variable "dev_project_id" {
   default = "ajh-kh-gallery-dev"
 }
 
-variable "auth_managed" {
-  description = "Manage Identity Platform config in terraform. initializeAuth is billing-gated, so this requires billing_account to be linked to the prod project."
-  type        = bool
-  default     = true
-}
-
 variable "management_project" {
   description = "Quota/billing project for API calls (carries the billing account for all ajh infra)."
   type        = string
@@ -27,13 +21,13 @@ variable "custom_domain" {
 }
 
 variable "firebase_admins" {
-  description = "Google accounts granted roles/firebase.admin on the prod project and a gallery admins/ doc. Lowercase emails."
+  description = "Google accounts granted roles/firebase.admin and a gallery admins/ doc on prod and dev. Lowercase emails."
   type        = set(string)
   default     = ["nicolasjhammond@gmail.com"]
 }
 
 variable "billing_account" {
-  description = "Billing account linked to the prod and dev projects. Needed for Identity Platform (Auth config) and Cloud Storage uploads."
+  description = "Billing account linked to the prod and dev projects."
   type        = string
   default     = "01CC13-E28451-386B15"
 }
@@ -54,4 +48,16 @@ variable "owner_email" {
   description = "Gallery owner: an admin who can also add and remove other admins. Lowercase."
   type        = string
   default     = "ajhammond123@gmail.com"
+}
+
+variable "dev_google_oauth_client_id" {
+  description = "Same as google_oauth_client_id, for the dev project's own console-created client."
+  type        = string
+  default     = ""
+}
+
+variable "dev_google_oauth_client_secret" {
+  type      = string
+  default   = ""
+  sensitive = true
 }

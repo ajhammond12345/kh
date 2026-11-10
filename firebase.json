@@ -13,5 +13,5 @@
   "firestore": {
     "rules": "firestore.rules"
   },
-  "storage": [{ "bucket": "ajh-kh-gallery-uploads", "rules": "storage.rules" }]
+  "storage": [{ "target": "uploads", "rules": "storage.rules" }]
 }
