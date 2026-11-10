@@ -33,7 +33,7 @@ variable "firebase_admins" {
 }
 
 variable "billing_account" {
-  description = "Billing account linked to the prod project. Needed for Identity Platform (Auth config) and Cloud Storage uploads; dev stays on Spark."
+  description = "Billing account linked to the prod and dev projects. Needed for Identity Platform (Auth config) and Cloud Storage uploads."
   type        = string
   default     = "01CC13-E28451-386B15"
 }

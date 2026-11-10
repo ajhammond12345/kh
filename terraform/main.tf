@@ -19,9 +19,9 @@ terraform {
 }
 
 # ajh-infrastructure is the management project: it carries the billing
-# account and is the quota project for all API calls. The prod site project is
+# account and is the quota project for all API calls. The site projects are
 # also billed (Identity Platform config and Cloud Storage uploads need billing
-# on the project itself); dev stays unbilled on the Spark plan.
+# on the project itself).
 provider "google" {
   project               = var.project_id
   user_project_override = true
@@ -212,6 +212,7 @@ resource "google_firebase_storage_bucket" "uploads" {
 resource "google_project" "kh_gallery_dev" {
   project_id      = var.dev_project_id
   name            = "KH Gallery Dev"
+  billing_account = var.billing_account
   deletion_policy = "PREVENT"
 }
 
