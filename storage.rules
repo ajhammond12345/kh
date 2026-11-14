@@ -1,6 +1,6 @@
 rules_version = '2';
-// Objects are also publicly readable through bucket IAM (allUsers), which is
-// how the site renders them; these rules only gate writes from the web SDK.
+// Objects are also publicly readable through bucket IAM (allUsers, get only),
+// which is how the site renders them; these rules gate the web SDK.
 service firebase.storage {
   match /b/{bucket}/o {
     function signedIn() {
@@ -12,13 +12,31 @@ service firebase.storage {
         && firestore.exists(/databases/(default)/documents/admins/$(request.auth.token.email.lower()));
     }
 
+    // A visitor may only fill the folder of their own pending submission, and
+    // only with the file names it declared, so each submission is bounded.
+    function ownsPendingSubmission(uploadId, file) {
+      let sub = firestore.get(/databases/(default)/documents/submissions/$(uploadId)).data;
+      return sub.uid == request.auth.uid
+        && sub.status == 'pending'
+        && file.matches(sub.imageName + '[.](jpg|webp)');
+    }
+
     match /uploads/{uploadId}/{size}/{file} {
-      allow read: if true;
-      // Visitors may add new images but never replace or delete existing ones.
+      allow get: if true;
+      // Re-uploading to an existing path is evaluated as create, hence the
+      // resource check; existing images can only be deleted, by admins.
       allow create: if signedIn()
-        && request.resource.size < 25 * 1024 * 1024
-        && request.resource.contentType.matches('image/(jpeg|png|webp)');
-      allow update, delete: if isAdmin();
+        && resource == null
+        && size in ['thumb', 'medium', 'large', 'original']
+        && file.matches('[a-z0-9-]{1,80}[.](jpg|webp)')
+        && request.resource.contentType.matches('image/(jpeg|webp)')
+        && request.resource.size < (size == 'original' ? 15 : 3) * 1024 * 1024
+        && (isAdmin() || ownsPendingSubmission(uploadId, file));
+      allow delete: if isAdmin();
+    }
+
+    match /uploads/{path=**} {
+      allow list: if isAdmin();
     }
   }
 }

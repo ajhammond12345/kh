@@ -47,7 +47,6 @@ export type CatalogItem = {
 
 export type ArtworkDoc = CatalogItem & {
   description: string | null
-  imagePaths?: string[]
   published: boolean
   displayOrder: number
 }

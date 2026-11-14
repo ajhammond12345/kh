@@ -17,14 +17,17 @@ fallback URL https://ajh-kh-gallery.web.app, Firebase project `ajh-kh-gallery`).
   are Hosting static files from the `kh-data` tree (outside the repo). Works
   added through the site (admin "Add an artwork" or an approved `/submit`
   submission) are resized in the browser and uploaded to the public
-  `<project>-uploads` bucket at `uploads/{id}/{size}/{imageName}.{ext}`;
-  their docs carry `imageBase`/`imageName`/`imagePaths`
+  `<project>-uploads` bucket at `uploads/{id}/{size}/{imageName}.{ext}`
+  (`size` is thumb/medium/large plus a re-encoded, EXIF-free `original`);
+  their docs carry `imageBase`/`imageName`, and deleting one removes the
+  whole `uploads/{id}/` folder
 - **Auth** — Firebase Auth (Google sign-in + email link) guarding `/admin`
 - `packages/backend` — legacy Hono/SQLite server, no longer used by the site
 - `firestore.rules` — global read, admin-only write, owner-only admin
-  management, signed-in visitors may create pending submissions;
-  `storage.rules` — signed-in users may add (never replace) images under
-  `uploads/`, admins may delete
+  management, signed-in visitors may create pending submissions whose image
+  fields point at their own upload folder; `storage.rules` — admins may add
+  and delete images under `uploads/`, a visitor may only add the declared
+  files of their own pending submission, nothing is ever replaced
 
 ## Local dev
 
@@ -123,6 +126,6 @@ Auth authorized domains via terraform.
   ```
 
 Uploads use each project's `<project>-uploads` bucket (terraform: bucket,
-public read, Firebase link, and the Firestore role the Storage rules need for
+public get-only read (no listing), Firebase link, and the Firestore role the Storage rules need for
 their admin check). `.firebaserc` maps the `uploads` storage deploy target to
 the right bucket per project.

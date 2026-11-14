@@ -1,8 +1,7 @@
 <script setup lang="ts">
 const props = withDefaults(defineProps<{ returnPath?: string }>(), { returnPath: '/admin/login' })
-const emit = defineEmits<{ signedIn: [] }>()
 
-const { signInWithGoogle, sendLoginLink } = useAuth()
+const { signInWithGoogle, sendLoginLink, completeLoginLink, linkNeedsEmail } = useAuth()
 
 const email = ref('')
 const sending = ref(false)
@@ -15,7 +14,6 @@ async function googleSignIn() {
   signingIn.value = true
   try {
     await signInWithGoogle()
-    emit('signedIn')
   } catch (err) {
     error.value = (err as Error)?.message || 'Sign-in failed. Please try again.'
   } finally {
@@ -32,10 +30,16 @@ async function submitEmail() {
   }
   sending.value = true
   try {
-    await sendLoginLink(address, props.returnPath)
-    sentTo.value = address
-  } catch {
-    error.value = 'The sign-in link could not be sent. Please try again.'
+    if (linkNeedsEmail.value) {
+      await completeLoginLink(address)
+    } else {
+      await sendLoginLink(address, props.returnPath)
+      sentTo.value = address
+    }
+  } catch (err) {
+    error.value = linkNeedsEmail.value
+      ? (err as Error)?.message || 'That sign-in link could not be used. Please request a new one.'
+      : 'The sign-in link could not be sent. Please try again.'
   } finally {
     sending.value = false
   }
@@ -44,7 +48,11 @@ async function submitEmail() {
 
 <template>
   <div class="ksp">
-    <button class="ksp-google" :disabled="signingIn" @click="googleSignIn">
+    <p v-if="linkNeedsEmail" class="ksp-confirm">
+      This link was opened in a different browser from the one that asked for it. Enter your
+      email address to finish signing in.
+    </p>
+    <button v-else class="ksp-google" :disabled="signingIn" @click="googleSignIn">
       <svg class="ksp-g" viewBox="0 0 48 48" aria-hidden="true">
         <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
         <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
@@ -54,11 +62,11 @@ async function submitEmail() {
       {{ signingIn ? 'Signing in…' : 'Continue with Google' }}
     </button>
 
-    <div class="ksp-divider"><span>or use your email</span></div>
+    <div v-if="!linkNeedsEmail" class="ksp-divider"><span>or use your email</span></div>
 
     <div v-if="sentTo" class="ksp-sent" role="status">
       <strong>Check your inbox.</strong>
-      We've sent a sign-in link to {{ sentTo }}. Open it on this device to finish signing in.
+      We've sent a sign-in link to {{ sentTo }}. Open it to finish signing in.
       <button class="kha-link-btn" @click="sentTo = ''">Use a different address</button>
     </div>
     <form v-else class="ksp-form" @submit.prevent="submitEmail">
@@ -80,7 +88,7 @@ async function submitEmail() {
         />
       </div>
       <button type="submit" class="kha-btn ksp-send" :disabled="sending">
-        {{ sending ? 'Sending…' : 'Email me a sign-in link' }}
+        {{ linkNeedsEmail ? (sending ? 'Signing in…' : 'Sign in') : sending ? 'Sending…' : 'Email me a sign-in link' }}
       </button>
     </form>
 
@@ -177,6 +185,13 @@ async function submitEmail() {
   min-height: 46px;
   font-size: 14px;
   border-radius: 8px;
+}
+.ksp-confirm {
+  margin: 0 0 16px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-2);
 }
 .ksp-sent {
   display: flex;

@@ -5,7 +5,7 @@ definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'Submissions — Knighton-Hammond Admin' })
 
 const { imageUrl } = useGallery()
-const { loadSubmissions, approveSubmission, rejectSubmission } = useArtworkAdmin()
+const { loadSubmissions, approveSubmission, rejectSubmission, originalImageUrl } = useArtworkAdmin()
 
 const submissions = ref<SubmissionDoc[]>([])
 const loading = ref(true)
@@ -26,10 +26,7 @@ const pending = computed(() => submissions.value.filter((s) => s.status === 'pen
 const reviewed = computed(() => submissions.value.filter((s) => s.status !== 'pending'))
 
 const thumb = (s: SubmissionDoc, size: 'thumb' | 'large' = 'thumb') => imageUrl(s.imageName, size, 'jpg', s.imageBase)
-const originalUrl = (s: SubmissionDoc) => {
-  const path = s.imagePaths.find((p) => p.includes('/original/'))
-  return path ? `${s.imageBase.slice(0, s.imageBase.indexOf('/uploads/'))}/${path}` : thumb(s, 'large')
-}
+const originalUrl = (s: SubmissionDoc) => originalImageUrl(s) ?? thumb(s, 'large')
 
 function formatDate(s: SubmissionDoc) {
   const date = s.createdAt?.toDate?.()

@@ -32,6 +32,9 @@ export function useAuth() {
   const role = useState<'owner' | 'admin' | null>('kh-auth-role', () => null)
   const isAdmin = computed(() => role.value !== null)
   const isOwner = computed(() => role.value === 'owner')
+  // Set when a sign-in link is opened in a browser that didn't request it, so
+  // the page can ask for the address (window.prompt is blocked in many mail apps).
+  const linkNeedsEmail = useState('kh-auth-link-needs-email', () => false)
 
   async function loadRole(email: string | null | undefined) {
     role.value = null
@@ -85,14 +88,14 @@ export function useAuth() {
     localStorage.setItem(LOGIN_EMAIL_KEY, email)
   }
 
-  async function completeLoginLink(): Promise<boolean> {
+  async function completeLoginLink(confirmedEmail?: string): Promise<boolean> {
     const auth = getFirebaseAuth()
     if (!isSignInWithEmailLink(auth, location.href)) return false
-    let email = localStorage.getItem(LOGIN_EMAIL_KEY)
+    const email = confirmedEmail || localStorage.getItem(LOGIN_EMAIL_KEY)
     if (!email) {
-      email = window.prompt('Confirm the email address this sign-in link was sent to')
+      linkNeedsEmail.value = true
+      return false
     }
-    if (!email) return false
     let cred
     try {
       cred = await signInWithEmailLink(auth, email, location.href)
@@ -100,6 +103,7 @@ export function useAuth() {
       throw withFriendlyMessage(err)
     }
     localStorage.removeItem(LOGIN_EMAIL_KEY)
+    linkNeedsEmail.value = false
     user.value = cred.user
     await loadRole(cred.user.email)
     return true
@@ -119,6 +123,7 @@ export function useAuth() {
     signInWithGoogle,
     sendLoginLink,
     completeLoginLink,
+    linkNeedsEmail,
     signOutUser,
   }
 }
