@@ -17,7 +17,7 @@ fallback URL https://ajh-kh-gallery.web.app, Firebase project `ajh-kh-gallery`).
   are Hosting static files from the `kh-data` tree (outside the repo). Works
   added through the site (admin "Add an artwork" or an approved `/submit`
   submission) are resized in the browser and uploaded to the public
-  `ajh-kh-gallery-uploads` bucket at `uploads/{id}/{size}/{imageName}.{ext}`;
+  `<project>-uploads` bucket at `uploads/{id}/{size}/{imageName}.{ext}`;
   their docs carry `imageBase`/`imageName`/`imagePaths`
 - **Auth** — Firebase Auth (Google sign-in + email link) guarding `/admin`
 - `packages/backend` — legacy Hono/SQLite server, no longer used by the site
@@ -66,13 +66,18 @@ and rebuilds `catalog/artworks` from the artworks collection.
 ## Infrastructure
 
 `terraform/` manages the GCP/Firebase resources (project, hosting site,
-Firestore, web app, Auth config, admins, custom domain). Remote state:
+Firestore, web app, Auth config, admins, upload bucket, custom domain). Prod
+(`ajh-kh-gallery`) and dev (`ajh-kh-gallery-dev`) are two instances of
+`terraform/modules/gallery`, so dev always has everything prod has; add new
+infrastructure to the module, not to one environment. Only the custom domain
+is prod-only. Remote state:
 `gs://kh-infra` (see the
 [ajh-infrastructure](https://github.com/ajhammond12345/ajh-infrastructure)
 repo). `ajh-infrastructure` is the management project for API quota
-attribution; the prod project is linked to the same billing account because
-Identity Platform (the Auth config) needs billing on the project itself. Dev
-stays on Spark, so dev has no Auth and no admin login.
+attribution; both gallery projects are linked to the same billing account
+because Identity Platform (the Auth config) and Cloud Storage need billing on
+the project itself. The account-wide $10/month budget and billing kill switch
+in `ajh-infrastructure` cover both.
 
 ### Custom domain / DNS
 
@@ -97,12 +102,14 @@ Auth authorized domains via terraform.
 ### Auth / admin login
 
 - Email-link sign-in and the authorized-domain list are terraform-managed
-  (`google_identity_platform_config.auth`, prod only).
+  (`google_identity_platform_config.auth` in the module).
 - Who is an admin = `admins/{email}` docs (`firebase_admins` var + the seeded
   owner); `/admin/login` then works with an email link straight away.
 - **Google sign-in** needs an OAuth client only the Firebase console can
   create: Authentication → Sign-in method → Google → Enable → pick the support
-  email → Save. Then adopt it into terraform so it stays declared:
+  email → Save. Do it on both projects; each gets its own client. Then adopt
+  it into terraform so it stays declared (for dev, use `ajh-kh-gallery-dev`,
+  the `dev_google_oauth_client_*` vars and `module.dev`):
 
   ```bash
   cd terraform
@@ -110,11 +117,12 @@ Auth authorized domains via terraform.
   curl -s -H "Authorization: Bearer $TOKEN" -H "x-goog-user-project: ajh-infrastructure" \
     https://identitytoolkit.googleapis.com/admin/v2/projects/ajh-kh-gallery/defaultSupportedIdpConfigs/google.com \
     | jq -r '"google_oauth_client_id = \"\(.clientId)\"\ngoogle_oauth_client_secret = \"\(.clientSecret)\""' >> terraform.tfvars
-  terraform import 'google_identity_platform_default_supported_idp_config.google[0]' \
+  terraform import 'module.prod.google_identity_platform_default_supported_idp_config.google[0]' \
     projects/ajh-kh-gallery/defaultSupportedIdpConfigs/google.com
   terraform plan   # expect: no changes
   ```
 
-Uploads use the `ajh-kh-gallery-uploads` bucket (terraform: bucket, public
-read, Firebase link, and the Firestore role the Storage rules need for their
-admin check). Dev has no bucket, so the upload UI is disabled there.
+Uploads use each project's `<project>-uploads` bucket (terraform: bucket,
+public read, Firebase link, and the Firestore role the Storage rules need for
+their admin check). `.firebaserc` maps the `uploads` storage deploy target to
+the right bucket per project.
