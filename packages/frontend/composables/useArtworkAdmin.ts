@@ -8,8 +8,9 @@ import {
   updateDoc,
   type Timestamp,
 } from 'firebase/firestore'
-import { deleteObject, ref as storageRef, uploadBytes } from 'firebase/storage'
+import { deleteObject, listAll, ref as storageRef, uploadBytes, type StorageReference } from 'firebase/storage'
 import type { ArtworkDoc, CatalogItem } from '~/composables/useArtworks'
+import type { ProcessedImage } from '~/utils/artworkImage'
 
 export type ArtworkFields = {
   title: string
@@ -26,7 +27,6 @@ export type ArtworkFields = {
 export type UploadedImage = {
   imageBase: string
   imageName: string
-  imagePaths: string[]
   dominantColor: string
 }
 
@@ -92,6 +92,18 @@ export function useArtworkAdmin() {
   const bucket = useRuntimeConfig().public.firebase.uploadBucket
 
   const uploadsEnabled = computed(() => !!getUploadStorage())
+  const uploadsRoot = `https://storage.googleapis.com/${bucket}/uploads/`
+
+  // Every upload lives under uploads/{id}/; anything else (the static image
+  // tree, or a base pointing elsewhere) has no id here and nothing to delete.
+  function uploadIdOf(imageBase: string | null | undefined) {
+    const id = imageBase?.startsWith(uploadsRoot) ? imageBase.slice(uploadsRoot.length) : ''
+    return /^[A-Za-z0-9-]+$/.test(id) ? id : null
+  }
+
+  function originalImageUrl(image: Pick<UploadedImage, 'imageBase' | 'imageName'>) {
+    return uploadIdOf(image.imageBase) ? `${image.imageBase}/original/${image.imageName}.jpg` : null
+  }
 
   async function loadArtworks(): Promise<ArtworkDoc[]> {
     const snap = await getDocs(collection(getFirestoreDb(), 'artworks'))
@@ -114,41 +126,34 @@ export function useArtworkAdmin() {
     })
   }
 
-  async function uploadImage(uploadId: string, title: string, file: File): Promise<UploadedImage> {
+  async function uploadImage(uploadId: string, title: string, image: ProcessedImage): Promise<UploadedImage> {
     const storage = getUploadStorage()
     if (!storage) throw new Error('Image uploads are not available on this site.')
-    const { variants, dominantColor } = await processArtworkImage(file)
+    const { variants, original, dominantColor } = image
     const imageName = slugify(title)
     const prefix = `uploads/${uploadId}`
     const cacheControl = 'public, max-age=31536000, immutable'
-    const originalExt = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg'
     const uploads = [
       ...variants.map((v) => ({ path: `${prefix}/${v.size}/${imageName}.${v.format}`, blob: v.blob })),
-      { path: `${prefix}/original/${imageName}.${originalExt}`, blob: file },
+      { path: `${prefix}/original/${imageName}.jpg`, blob: original },
     ]
     await Promise.all(
       uploads.map((u) =>
         uploadBytes(storageRef(storage, u.path), u.blob, { contentType: u.blob.type, cacheControl }),
       ),
     )
-    return {
-      imageBase: `https://storage.googleapis.com/${bucket}/${prefix}`,
-      imageName,
-      imagePaths: uploads.map((u) => u.path),
-      dominantColor,
-    }
+    return { imageBase: `${uploadsRoot}${uploadId}`, imageName, dominantColor }
   }
 
-  async function deleteImages(paths: string[] | undefined) {
+  async function deleteFolder(folder: StorageReference): Promise<void> {
+    const { items, prefixes } = await listAll(folder)
+    await Promise.all([...items.map((item) => deleteObject(item)), ...prefixes.map(deleteFolder)])
+  }
+
+  async function deleteImages(imageBase: string | null | undefined) {
     const storage = getUploadStorage()
-    if (!storage || !paths?.length) return
-    await Promise.all(
-      paths.map((p) =>
-        deleteObject(storageRef(storage, p)).catch((err) => {
-          if (err?.code !== 'storage/object-not-found') throw err
-        }),
-      ),
-    )
+    const id = uploadIdOf(imageBase)
+    if (storage && id) await deleteFolder(storageRef(storage, `uploads/${id}`))
   }
 
   async function createArtwork(fields: ArtworkFields, image: UploadedImage) {
@@ -164,7 +169,6 @@ export function useArtworkAdmin() {
       slug,
       imageBase: image.imageBase,
       imageName: image.imageName,
-      imagePaths: image.imagePaths,
       dominantColor: image.dominantColor,
       published: true,
       displayOrder: Math.min(0, ...rows.map((r) => r.displayOrder ?? 0)) - 1,
@@ -180,24 +184,34 @@ export function useArtworkAdmin() {
   }
 
   async function addArtwork(fields: ArtworkFields, file: File) {
-    const image = await uploadImage(crypto.randomUUID(), fields.title, file)
+    const image = await uploadImage(crypto.randomUUID(), fields.title, await processArtworkImage(file))
     return createArtwork(fields, image)
   }
 
   async function submitArtwork(fields: ArtworkFields, file: File, submitterName: string) {
     const u = user.value
     if (!u?.email) throw new Error('Please sign in first.')
+    // The doc goes first: storage.rules only accept a visitor's upload into
+    // the folder of their own pending submission, under its imageName.
+    const processed = await processArtworkImage(file)
     const ref = doc(collection(getFirestoreDb(), 'submissions'))
-    const image = await uploadImage(ref.id, fields.title, file)
     await setDoc(ref, {
       ...cleanFields(fields),
-      ...image,
+      imageBase: `${uploadsRoot}${ref.id}`,
+      imageName: slugify(fields.title),
+      dominantColor: processed.dominantColor,
       uid: u.uid,
       submitterEmail: u.email.toLowerCase(),
       submitterName: submitterName.trim() || null,
       status: 'pending',
       createdAt: serverTimestamp(),
     })
+    try {
+      await uploadImage(ref.id, fields.title, processed)
+    } catch (err) {
+      await deleteDoc(ref).catch(() => {})
+      throw err
+    }
   }
 
   async function loadSubmissions(): Promise<SubmissionDoc[]> {
@@ -219,7 +233,7 @@ export function useArtworkAdmin() {
   }
 
   async function rejectSubmission(sub: SubmissionDoc) {
-    await deleteImages(sub.imagePaths)
+    await deleteImages(sub.imageBase)
     await updateDoc(doc(getFirestoreDb(), 'submissions', sub.id), {
       status: 'rejected',
       reviewedBy: user.value?.email ?? null,
@@ -230,7 +244,7 @@ export function useArtworkAdmin() {
   async function deleteArtwork(row: ArtworkDoc, remaining: ArtworkDoc[]) {
     await deleteDoc(doc(getFirestoreDb(), 'artworks', row.slug))
     await rebuildCatalog(remaining)
-    await deleteImages(row.imagePaths)
+    await deleteImages(row.imageBase)
   }
 
   async function countPendingSubmissions(): Promise<number> {
@@ -239,6 +253,7 @@ export function useArtworkAdmin() {
 
   return {
     uploadsEnabled,
+    originalImageUrl,
     loadArtworks,
     rebuildCatalog,
     addArtwork,

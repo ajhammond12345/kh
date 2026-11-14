@@ -37,20 +37,41 @@ service cloud.firestore {
     }
 
     // Public submissions: any signed-in visitor can propose a work; only admins
-    // review them. Approval copies the record into artworks/ client-side.
+    // review them. Approval copies the record into artworks/ client-side, so
+    // the image fields are pinned to the submission's own upload folder.
     match /submissions/{id} {
       allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
-      allow create: if signedIn()
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.submitterEmail == request.auth.token.email.lower()
-        && request.resource.data.status == 'pending'
-        && request.resource.data.title is string
-        && request.resource.data.title.size() > 0
-        && request.resource.data.title.size() <= 200
-        && request.resource.data.imageBase is string
-        && optionalString(request.resource.data, 'description', 5000)
-        && optionalString(request.resource.data, 'submitterName', 200);
-      allow update, delete: if isAdmin();
+      allow create: if signedIn() && validSubmission(request.resource.data, id);
+      // The submitter can withdraw a pending submission (the client does this
+      // when its photo upload fails).
+      allow delete: if isAdmin()
+        || (signedIn() && resource.data.uid == request.auth.uid && resource.data.status == 'pending');
+      allow update: if isAdmin();
+    }
+
+    function validSubmission(data, id) {
+      return data.keys().hasOnly([
+          'title', 'date', 'decade', 'medium', 'subject', 'location', 'signature',
+          'dimensions', 'description', 'imageBase', 'imageName', 'dominantColor',
+          'uid', 'submitterEmail', 'submitterName', 'status', 'createdAt'])
+        && data.uid == request.auth.uid
+        && data.submitterEmail == request.auth.token.email.lower()
+        && data.status == 'pending'
+        && data.createdAt == request.time
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 200
+        && data.imageBase is string
+        && data.imageBase.matches('https://storage[.]googleapis[.]com/ajh-kh-gallery(-dev)?-uploads/uploads/' + id)
+        && data.imageName is string && data.imageName.matches('[a-z0-9-]{1,80}')
+        && data.dominantColor is string && data.dominantColor.matches('#[0-9a-f]{6}')
+        && optionalString(data, 'date', 200)
+        && optionalString(data, 'decade', 20)
+        && optionalString(data, 'medium', 200)
+        && optionalString(data, 'subject', 200)
+        && optionalString(data, 'location', 200)
+        && optionalString(data, 'signature', 200)
+        && optionalString(data, 'dimensions', 200)
+        && optionalString(data, 'description', 5000)
+        && optionalString(data, 'submitterName', 200);
     }
   }
 }

@@ -160,9 +160,11 @@ resource "google_storage_bucket" "uploads" {
   depends_on = [google_project_service.services]
 }
 
+# legacyObjectReader is objects.get only; objectViewer would also let anyone
+# list the bucket, including photos still awaiting review.
 resource "google_storage_bucket_iam_member" "uploads_public_read" {
   bucket = google_storage_bucket.uploads.name
-  role   = "roles/storage.objectViewer"
+  role   = "roles/storage.legacyObjectReader"
   member = "allUsers"
 }
 

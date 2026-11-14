@@ -12,9 +12,12 @@ const notAuthorised = computed(
   () => !checking.value && !!user.value && !isAdmin.value,
 )
 
-function enterIfAdmin() {
-  if (isAdmin.value) router.replace('/admin')
-}
+// Watched rather than triggered by the sign-in panel: the user is set a beat
+// before their role loads, which briefly swaps the panel for the
+// "not authorised" note and would swallow an event from it.
+watch(isAdmin, (admin) => {
+  if (admin && !checking.value) router.replace('/admin')
+})
 
 onMounted(async () => {
   try {
@@ -24,7 +27,7 @@ onMounted(async () => {
   }
   await authReady()
   checking.value = false
-  if (user.value) enterIfAdmin()
+  if (isAdmin.value) router.replace('/admin')
 })
 
 async function switchAccount() {
@@ -59,7 +62,7 @@ async function switchAccount() {
         </button>
       </template>
 
-      <SignInPanel v-else @signed-in="enterIfAdmin" />
+      <SignInPanel v-else />
 
       <p v-if="error" class="kha-error khl-error">{{ error }}</p>
 
